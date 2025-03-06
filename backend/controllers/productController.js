@@ -1,6 +1,30 @@
-import mongoose from 'mongoose';
+import getProductModel from "../models/products.js";
+import mongoose from "mongoose";
 
-export const getAllProducts = async (req, res) => {
+/**
+ * Add a new product dynamically to the corresponding category collection.
+ */
+export const addProduct = async (req, res) => {
+    try {
+        const { title, brand, category, stock, price, features, image_url, link } = req.body;
+        
+        if (!category) {
+            return res.status(400).json({ message: "Category is required" });
+        }
+
+        const ProductModel = getProductModel(category);
+        const newProduct = new ProductModel({ title, brand, category, stock, price, features, image_url, link });
+
+        await newProduct.save();
+        res.status(201).json({ message: "Product added successfully", product: newProduct });
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+
+export const getProductsByCategory = async (req, res) => {
     try {
         const { category } = req.query;
 
@@ -9,7 +33,7 @@ export const getAllProducts = async (req, res) => {
         }
 
         // Normalize collection name (convert to lowercase and replace spaces with underscores)
-        const collectionName = category.toLowerCase().replace(" ", "_");
+        const collectionName = category.toLowerCase().replace(/\s+/g, "_");
 
         // Check if the collection exists
         const collections = await mongoose.connection.db.listCollections().toArray();
@@ -19,11 +43,10 @@ export const getAllProducts = async (req, res) => {
             return res.status(404).json({ message: "Category not found" });
         }
 
-        // Dynamically select the collection
+        // Fetch products from the existing category collection
         const ProductModel = mongoose.model(collectionName, new mongoose.Schema({}, { strict: false }), collectionName);
-
-        // Fetch all products from the selected category collection
         const products = await ProductModel.find();
+
         res.json(products);
 
     } catch (error) {

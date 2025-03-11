@@ -6,8 +6,6 @@ import Signup from './pages/Signup.jsx'
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import OtpVerification from "./pages/ForgotPassword/OtpVerification";
 import ResetPassword from "./pages/ForgotPassword/ResetPassword";
-// import { ForgotPassword,OtpVerification,ResetPassword} from './pages/Auth.jsx';
-// import ForgotPasswordFlow from './pages/Auth.jsx';
 function App() {
   return (
     <>

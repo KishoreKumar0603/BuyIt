@@ -8,42 +8,6 @@ dotenv.config();
 
 // Register User
 
-// export const registerUser = async (req, res) => {
-//   try {
-//     console.log(req.body);
-//     const { name, email, phone, password } = req.body;
-
-//     let user = await User.findOne({ email });
-//     if (user) {
-//       return res.status(400).json({ message: "User already exists" });
-//     }
-
-//     // Hash the password
-//     const hashedPassword = await bcrypt.hash(password, 10);
-
-//     // Generate OTP
-//     const otp = Math.floor(1000 + Math.random() * 9000); // 4-digit OTP
-
-//     // Create JWT activation token (valid for 5 minutes)
-//     const activationKey = jwt.sign(
-//       { name, email, phone, hashedPassword, otp },
-//       process.env.ACTIVATION_KEY,
-//       { expiresIn: "5m" }
-//     );
-
-//     // Send OTP via email
-//     const message = `Please verify your account to continue. Your OTP is: ${otp}`;
-//     await sendMail(email, "Welcome to BuyIt", message);
-
-//     return res.status(200).json({
-//       message: "OTP sent to your email",
-//       activationKey,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     return res.status(500).json({ message: "Server error. Please try again." });
-//   }
-// };
 
 export const registerUser = async (req, res) => {
   try {
@@ -60,9 +24,7 @@ export const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Generate OTP
-    const otp = Math.floor(1000 + Math.random() * 9000); // 4-digit OTP
-
-    // Create JWT activation token (valid for 5 minutes)
+    const otp = Math.floor(1000 + Math.random() * 9000);
     const activationKey = jwt.sign(
       { name, email, phone, hashedPassword, otp },
       process.env.ACTIVATION_KEY,
@@ -70,13 +32,35 @@ export const registerUser = async (req, res) => {
     );
 
     // Send OTP via email
-    const message = `Please verify your account to continue. Your OTP is: ${otp}`;
-    await sendMail(email, "Welcome to BuyIt", message);
+    // const message = `Please verify your account to continue. Your OTP is: ${otp}`;
+    // Professionally formatted HTML email with copy button
+    const message = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
+      <h2 style="text-align: center; color:rgb(0, 0, 0);">BuyIt - OTP Verification</h2>
+      <p style="color: #333; text-align: center;">Hello <strong>${name}</strong>,</p>
+      <p style="color: #555; text-align: center;">We received a request to verify your email address for your BuyIt account.</p>
+      <p style="text-align: center; font-size: 18px; color: #333; font-weight: bold;">Your OTP Code:</p>
+      
+      <div style="text-align: center; background:rgba(124, 124, 124, 0.82); color: white; padding: 15px; font-size: 24px; font-weight: bold; border-radius: 5px;">
+        ${otp}
+      </div>
 
-    // Send activationKey in response (frontend will store it in localStorage)
+      <p style="text-align: center; color: #777; font-size: 14px;">This OTP is valid for <strong>5 minutes</strong>. Please do not share this code with anyone.</p>
+
+      <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
+      <p style="text-align: center; font-size: 12px; color: #999;">If you did not request this, please ignore this email.</p>
+      <p style="text-align: center; font-size: 12px; color: #999;">&copy; 2025 BuyIt. All rights reserved.</p>
+    </div>
+  `;
+
+await sendMail(email, "BuyIt - OTP Verification", message);
+
+
+    await sendMail(email, "BuyIt - OTP Verification", message);
+    console.log("Activation Key:", activationKey);
     return res.status(200).json({
-      message: "OTP sent to your email",
-      activationKey, // Frontend will store this
+      message: "OTP sent to your email. Please verify your account!",
+      activationKey,
     });
   } catch (error) {
     console.error("Error in registerUser:", error);
@@ -86,60 +70,35 @@ export const registerUser = async (req, res) => {
 
 
 //verify otp
-// export const verifyUser = async (req,res) =>{
-//   try{
-
-//     const {otp,activationKey} = req.body;
-//     const verify = jwt.verify(activationKey,process.env.ACTIVATION_KEY);
-//     if(!verify){
-//       return res.json({
-//         message : "OTP  Expired...",
-//       });
-//     }
-
-//     if(verify.otp !== otp){
-//       return res.json({
-//         message: "Wrong Otp...",
-//       });
-//     }
-
-//     await User.create({
-//       name:verify.user.name,
-//       email:verify.user.email,
-//       password:verify.user.hashedPassword,
-//       phone:verify.user.phone,
-//     });
-
-//     return res.status(200).json({
-//       message:"Account Created Succesfully",
-//     });
-
-//   }catch(error){
-//     return res.status(500).json({
-//       message:error.message,
-//     });
-//   }
-// }
 export const verifyUser = async (req, res) => {
   try {
     console.log("Received OTP Verification Data:", req.body);
-
-    const { otp, activationKey } = req.body; // Frontend retrieves activationKey from localStorage
+    const { otp, activationKey } = req.body;
 
     if (!activationKey) {
       return res.status(400).json({ message: "Activation Key is missing. Please register again." });
     }
 
-    // Verify JWT
-    const decoded = jwt.verify(activationKey, process.env.ACTIVATION_KEY);
-    console.log("Decoded JWT Data:", decoded); // Debugging
-
-    if (!decoded) {
-      return res.status(400).json({ message: "OTP Expired..." });
+    let decoded;
+    try {
+      decoded = jwt.verify(activationKey, process.env.ACTIVATION_KEY);
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return res.status(400).json({ message: "OTP has expired. Please request a new one." });
+      }
+      return res.status(400).json({ message: "Invalid Activation Key." });
     }
 
-    if (decoded.otp !== otp) {
-      return res.status(400).json({ message: "Wrong OTP..." });
+    console.log("Decoded JWT Data:", decoded);
+
+    if (decoded.otp.toString() !== otp.toString()) {
+      return res.status(400).json({ message: "Incorrect OTP. Please try again." });
+    }
+
+    // Check if the user already exists
+    const existingUser = await User.findOne({ email: decoded.email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists. Please log in." });
     }
 
     // Create new user
@@ -158,38 +117,8 @@ export const verifyUser = async (req, res) => {
 };
 
 
+
 //Login User
-// export const loginUser =  async (req,res) =>{
-//   try{
-//     const{email , password} = req.body;
-
-//     //Check user email address
-    
-//     const user = await User.findOne({email});
-//     if(!user){
-//       return res.json({
-//         message : "Invalid email or password",
-//       });
-//     }
-//     //Generate
-//     const token = jwt.sign({_id:user.id},process.env.JWT_SECRET, {expiresIn: "15d"});
-//     const {password : userPassword, ...userDetails} = user.toObject();
-//     if (await user.matchPassword(password)) {
-//       res.json({
-//         message:"Welcome "+user.name,
-//         user : userDetails,
-//         token,
-//       });
-//     } else {
-//       return res.status(401).json({ message: "Invalid email or password" });
-//     }
-
-//   }catch(error){
-//     return res.json({
-//       message:error.message,
-//     });
-//   }
-// }
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -226,8 +155,6 @@ export const loginUser = async (req, res) => {
   }
 };
 
-
-
 //Profile View
 export const myProfile = async (req,res) =>{
   try{
@@ -241,3 +168,41 @@ export const myProfile = async (req,res) =>{
     });
   }
 }
+
+
+export const deleteUser = async (req, res) => {
+  try {
+      const { id } = req.params;
+      const user = await User.findById(id);
+      if (!user) {
+          return res.status(404).json({ message: "User not found" });
+      }
+
+      // Delete the user
+      await User.findByIdAndDelete(id);
+
+      res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+      res.status(500).json({ message: "Error deleting user", error: error.message });
+  }
+};
+
+export const updateUser = async (req, res) => {
+  try {
+      const { id } = req.params; // Get user ID from URL params
+      const updateData = req.body; // Get updated fields from request body
+
+      // Check if user exists
+      const user = await User.findById(id);
+      if (!user) {
+          return res.status(404).json({ message: "User not found" });
+      }
+
+      // Update user details
+      const updatedUser = await User.findByIdAndUpdate(id, updateData, { new: true });
+
+      res.status(200).json({ message: "User updated successfully", user: updatedUser });
+  } catch (error) {
+      res.status(500).json({ message: "Error updating user", error: error.message });
+  }
+};

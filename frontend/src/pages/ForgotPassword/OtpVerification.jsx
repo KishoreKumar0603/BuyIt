@@ -1,21 +1,33 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import '../../assets/css/pages/ForgotPassword/OtpVerification.css';
+import "../../assets/css/pages/ForgotPassword/OtpVerification.css";
+
 const OtpVerification = () => {
   const [otp, setOtp] = useState(["", "", "", ""]);
+  const inputRefs = useRef([]);
   const navigate = useNavigate();
 
-  const activationKey = localStorage.getItem("activationKey"); // Retrieve the stored activation key
-  console.log("Activation Key : "+activationKey);
+  const activationKey = localStorage.getItem("activationKey");
+
+  useEffect(() => {
+    if (inputRefs.current[0]) inputRefs.current[0].focus(); // Auto-focus first input on load
+  }, []);
 
   const handleChange = (index, value) => {
-    if (isNaN(value)) return;
+    if (!/^\d?$/.test(value)) return; // Only allow digits (0-9)
+
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
 
-    if (value !== "" && index < 3) {
-      document.getElementById(`otp-${index + 1}`).focus();
+    if (value && index < 3) {
+      inputRefs.current[index + 1].focus(); // Move to next input
+    }
+  };
+
+  const handleKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1].focus(); // Move back on delete
     }
   };
 
@@ -25,10 +37,13 @@ const OtpVerification = () => {
       return;
     }
 
-    const otpValue = otp.join("");
+    const otpValue = otp.join("").trim();
+    if (otpValue.length !== 4) {
+      alert("Please enter a 4-digit OTP.");
+      return;
+    }
 
     try {
-      console.log(activationKey);
       const response = await fetch("http://localhost:5000/api/user/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -39,7 +54,7 @@ const OtpVerification = () => {
 
       if (response.ok) {
         alert("Account Created Successfully");
-        localStorage.removeItem("activationKey"); // Clear after success
+        localStorage.removeItem("activationKey");
         navigate("/login");
       } else {
         alert(data.message);
@@ -53,17 +68,18 @@ const OtpVerification = () => {
   return (
     <div className="otp-container">
       <div className="otp-card">
-        <h2 className="otp-title">OTP - Verification</h2>
+        <h2 className="otp-title">OTP Verification</h2>
         <p className="otp-subtext">Enter the OTP sent to your email.</p>
         <div className="otp-inputs">
           {otp.map((digit, index) => (
             <input
               key={index}
-              id={`otp-${index}`}
+              ref={(el) => (inputRefs.current[index] = el)}
               type="text"
               maxLength="1"
               value={digit}
               onChange={(e) => handleChange(index, e.target.value)}
+              onKeyDown={(e) => handleKeyDown(index, e)}
             />
           ))}
         </div>

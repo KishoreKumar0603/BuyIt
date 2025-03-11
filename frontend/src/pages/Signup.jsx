@@ -23,12 +23,12 @@ const Signup = () => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (formData.password !== formData.confirmPassword) {
       setMessage("Passwords do not match!");
       return;
     }
-
+  
     try {
       const response = await axios.post("http://localhost:5000/api/user/register", {
         name: formData.name,
@@ -36,10 +36,13 @@ const Signup = () => {
         email: formData.email,
         password: formData.password,
       });
-
+  
       setMessage(response.data.message);
-
+  
       if (response.status === 200) {
+        // Store activationKey in local storage
+        localStorage.setItem("activationKey", response.data.activationKey);
+  
         alert("OTP sent to your email. Verify your account!");
         navigate("/otp-verification"); // Redirect to OTP verification page
       }
@@ -47,6 +50,7 @@ const Signup = () => {
       setMessage(error.response?.data?.message || "Something went wrong!");
     }
   };
+  
 
   return (
     <div className="container d-flex justify-content-center align-items-center vh-100">

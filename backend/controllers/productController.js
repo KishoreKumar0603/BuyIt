@@ -1,23 +1,56 @@
-import getProductModel from "../models/products.js";
 import mongoose from "mongoose";
+import Category from "../models/categoryModel.js"; 
 
 /**
  * Add a new product dynamically to the corresponding category collection.
  */
 export const addProduct = async (req, res) => {
     try {
-        const { title, brand, category, stock, price, features, image_url, link } = req.body;
-        
-        if (!category) {
-            return res.status(400).json({ message: "Category is required" });
+        const { title, brand, category, stock, price, rating, features, image_url, sold } = req.body;
+
+        if (!title || !brand || !category || !category.main || !stock || !price) {
+            return res.status(400).json({ message: "Missing required fields" });
         }
 
-        const ProductModel = getProductModel(category);
-        const newProduct = new ProductModel({ title, brand, category, stock, price, features, image_url, link });
+        // Convert user input category to lowercase for consistency
+        const userCategory = category.main.toLowerCase().replace(/\s+/g, "_");
 
+        // 🔍 Step 1: Find the correct category using aliases
+        const categoryMapping = await Category.findOne({ aliases: userCategory });
+
+        // Get the correct category name (or fallback to user input)
+        const correctCategory = categoryMapping ? categoryMapping.category_name : userCategory;
+
+        // 🔍 Step 2: Check if the collection exists
+        const collections = await mongoose.connection.db.listCollections().toArray();
+        const collectionExists = collections.some(col => col.name === correctCategory);
+
+        if (!collectionExists) {
+            return res.status(404).json({ message: `Category '${correctCategory}' not found in the database.` });
+        }
+
+        // 🛠 Fix: Use a dynamic schema for flexible fields
+        const dynamicSchema = new mongoose.Schema({}, { strict: false });
+
+        // ✅ Use existing model or create a new one dynamically
+        const ProductModel = mongoose.models[correctCategory] || mongoose.model(correctCategory, dynamicSchema, correctCategory);
+
+        // Create a new product entry
+        const newProduct = new ProductModel({
+            title,
+            brand,
+            category: { main: correctCategory, sub: category.sub || "N/A" },
+            stock,
+            price,
+            rating: rating || "N/A",
+            features,
+            image_url: image_url || "N/A",
+            sold: sold || 0
+        });
+
+        // Save the product
         await newProduct.save();
         res.status(201).json({ message: "Product added successfully", product: newProduct });
-
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -32,10 +65,18 @@ export const getProductsByCategory = async (req, res) => {
             return res.status(400).json({ message: "Category is required" });
         }
 
-        // Normalize collection name (convert to lowercase and replace spaces with underscores)
-        const collectionName = category.toLowerCase().replace(/\s+/g, "_");
+        // 🔍 Step 1: Find the correct collection name using category aliases
+        const categoryData = await Category.findOne({
+            $or: [{ name: category.toLowerCase() }, { aliases: category.toLowerCase() }]
+        });
 
-        // Check if the collection exists
+        if (!categoryData) {
+            return res.status(404).json({ message: "Category not found" });
+        }
+
+        const collectionName = categoryData.name; // The actual collection name (e.g., "mobiles")
+
+        // 🔍 Step 2: Check if the collection exists
         const collections = await mongoose.connection.db.listCollections().toArray();
         const collectionExists = collections.some(col => col.name === collectionName);
 
@@ -43,13 +84,162 @@ export const getProductsByCategory = async (req, res) => {
             return res.status(404).json({ message: "Category not found" });
         }
 
-        // Fetch products from the existing category collection
-        const ProductModel = mongoose.model(collectionName, new mongoose.Schema({}, { strict: false }), collectionName);
+        // ✅ Use existing model or create one dynamically
+        const ProductModel = mongoose.models[collectionName] || mongoose.model(collectionName, new mongoose.Schema({}, { strict: false }), collectionName);
+
+        // Fetch products from the correct collection
         const products = await ProductModel.find();
 
         res.json(products);
 
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+
+export const deleteProduct = async (req, res) => {
+    try {
+        const { id } = req.params; // Get product ID from URL
+
+        if (!id) {
+            return res.status(400).json({ message: "Product ID is required" });
+        }
+
+        // Get all categories (collections) from the database
+        const collections = await mongoose.connection.db.listCollections().toArray();
+        const collectionNames = collections.map(col => col.name);
+
+        let deletedProduct = null;
+        let deletedCategory = null;
+
+        // Loop through collections to find the product
+        for (const category of collectionNames) {
+            // Get the model dynamically
+            const ProductModel =
+                mongoose.models[category] ||
+                mongoose.model(category, new mongoose.Schema({}, { strict: false }), category);
+
+            // Try to find the product in this collection
+            const product = await ProductModel.findById(id);
+
+            if (product) {
+                // If found, delete it
+                deletedProduct = await ProductModel.findByIdAndDelete(id);
+                deletedCategory = category;
+                break;
+            }
+        }
+
+        if (!deletedProduct) {
+            return res.status(404).json({ message: "Product not found in any category" });
+        }
+
+        res.status(200).json({ 
+            message: "Product deleted successfully", 
+            category: deletedCategory,
+            product: deletedProduct 
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: "Error deleting product", error: error.message });
+    }
+};
+
+
+
+export const updateProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const updateData = req.body;
+
+        if (!id) {
+            return res.status(400).json({ message: "Product ID is required" });
+        }
+
+        // Get all categories (collections) from the database
+        const collections = await mongoose.connection.db.listCollections().toArray();
+        const collectionNames = collections.map(col => col.name);
+
+        let productToUpdate = null;
+        let oldCategory = null;
+
+        // 🔍 Step 1: Find the product in any collection
+        for (const category of collectionNames) {
+            const ProductModel =
+                mongoose.models[category] ||
+                mongoose.model(category, new mongoose.Schema({}, { strict: false }), category);
+
+            const product = await ProductModel.findById(id);
+
+            if (product) {
+                productToUpdate = product;
+                oldCategory = category;
+                break;
+            }
+        }
+
+        if (!productToUpdate) {
+            return res.status(404).json({ message: "Product not found in any category" });
+        }
+
+        // 🔄 Step 2: Check if category is updated
+        let newCategory = productToUpdate.category.main; // Default: old category
+        if (updateData.category && updateData.category.main) {
+            // Convert user input category to lowercase for consistency
+            const userCategory = updateData.category.main.toLowerCase().replace(/\s+/g, "_");
+
+            // Check if the new category exists in the mapping table
+            const categoryMapping = await Category.findOne({ aliases: userCategory });
+
+            newCategory = categoryMapping ? categoryMapping.category_name : userCategory;
+        }
+
+        // 🚨 Step 3: If category changed, move product to new collection
+        if (newCategory !== oldCategory) {
+            // Delete product from the old category collection
+            const OldProductModel =
+                mongoose.models[oldCategory] ||
+                mongoose.model(oldCategory, new mongoose.Schema({}, { strict: false }), oldCategory);
+
+            await OldProductModel.findByIdAndDelete(id);
+
+            // Get the new category model dynamically
+            const NewProductModel =
+                mongoose.models[newCategory] ||
+                mongoose.model(newCategory, new mongoose.Schema({}, { strict: false }), newCategory);
+
+            // Save the product in the new category collection
+            const updatedProduct = new NewProductModel({
+                ...productToUpdate.toObject(), // Copy existing product data
+                ...updateData, // Apply new updates
+                category: { main: newCategory, sub: updateData.category?.sub || "N/A" }
+            });
+
+            await updatedProduct.save();
+
+            return res.status(200).json({
+                message: "Product updated and moved to new category",
+                oldCategory,
+                newCategory,
+                product: updatedProduct
+            });
+        }
+
+        // ✅ Step 4: If category is the same, just update the product
+        const ProductModel =
+            mongoose.models[oldCategory] ||
+            mongoose.model(oldCategory, new mongoose.Schema({}, { strict: false }), oldCategory);
+
+        const updatedProduct = await ProductModel.findByIdAndUpdate(id, updateData, { new: true });
+
+        res.status(200).json({
+            message: "Product updated successfully",
+            category: oldCategory,
+            product: updatedProduct
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: "Error updating product", error: error.message });
     }
 };

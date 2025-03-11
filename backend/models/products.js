@@ -9,7 +9,6 @@ const productSchema = new mongoose.Schema({
     rating: { type: String, default: "N/A" },
     features: { type: mongoose.Schema.Types.Mixed }, // Supports objects, arrays, etc.
     image_url: { type: String, default: "N/A" },
-    link: { type: String, required: true, trim: true },
     sold: { type: Number, default: 0, min: 0 },  // Prevents negative sales count
     created_at: { type: Date, default: Date.now },  // Corrected timestamp
 });

@@ -1,61 +1,72 @@
 import mongoose from "mongoose";
-import Category from "../models/categoryModel.js"; 
+import Category from "../models/categoryModel.js";
+import { uploadImage } from "./uploadController.js";
 
-/**
- * Add a new product dynamically to the corresponding category collection.
- */
 export const addProduct = async (req, res) => {
     try {
-        const { title, brand, category, stock, price, rating, features, image_url, sold } = req.body;
-
-        if (!title || !brand || !category || !category.main || !stock || !price) {
-            return res.status(400).json({ message: "Missing required fields" });
-        }
-
-        // Convert user input category to lowercase for consistency
-        const userCategory = category.main.toLowerCase().replace(/\s+/g, "_");
-
-        // 🔍 Step 1: Find the correct category using aliases
-        const categoryMapping = await Category.findOne({ aliases: userCategory });
-
-        // Get the correct category name (or fallback to user input)
-        const correctCategory = categoryMapping ? categoryMapping.category_name : userCategory;
-
-        // 🔍 Step 2: Check if the collection exists
-        const collections = await mongoose.connection.db.listCollections().toArray();
-        const collectionExists = collections.some(col => col.name === correctCategory);
-
-        if (!collectionExists) {
-            return res.status(404).json({ message: `Category '${correctCategory}' not found in the database.` });
-        }
-
-        // 🛠 Fix: Use a dynamic schema for flexible fields
-        const dynamicSchema = new mongoose.Schema({}, { strict: false });
-
-        // ✅ Use existing model or create a new one dynamically
-        const ProductModel = mongoose.models[correctCategory] || mongoose.model(correctCategory, dynamicSchema, correctCategory);
-
-        // Create a new product entry
-        const newProduct = new ProductModel({
-            title,
-            brand,
-            category: { main: correctCategory, sub: category.sub || "N/A" },
-            stock,
-            price,
-            rating: rating || "N/A",
-            features,
-            image_url: image_url || "N/A",
-            sold: sold || 0
+      const { title, brand, category, stock, price, rating, features, sold } = req.body;
+      
+      if (!title || !brand || !category.main || !stock || !price) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+  
+      // Convert category name for consistency
+      const userCategory = category.main.toLowerCase().replace(/\s+/g, "_");
+  
+      // 🔍 Step 1: Find the correct category using aliases
+      const categoryMapping = await Category.findOne({ aliases: userCategory });
+  
+      // Get the correct category name (or fallback to user input)
+      const correctCategory = categoryMapping ? categoryMapping.category_name : userCategory;
+  
+      // 🔍 Step 2: Check if the collection exists
+      const collections = await mongoose.connection.db.listCollections().toArray();
+      const collectionExists = collections.some(col => col.name === correctCategory);
+  
+      if (!collectionExists) {
+        return res.status(404).json({ message: `Category '${correctCategory}' not found in the database.` });
+      }
+  
+      // 🛠 Step 3: Upload Image & Get URL
+      let imageUrl = "N/A";
+      if (req.file) {
+        const uploadResponse = await new Promise((resolve, reject) => {
+          uploadImage(req, {
+            json: (data) => resolve(data),
+            status: () => ({ json: (data) => reject(data) })
+          });
         });
-
-        // Save the product
-        await newProduct.save();
-        res.status(201).json({ message: "Product added successfully", product: newProduct });
+        imageUrl = uploadResponse.url;
+      }
+  
+      // ✅ Step 4: Use dynamic schema for flexible fields
+      const dynamicSchema = new mongoose.Schema({}, { strict: false });
+  
+      // ✅ Use existing model or create a new one dynamically
+      const ProductModel = mongoose.models[correctCategory] || mongoose.model(correctCategory, dynamicSchema, correctCategory);
+  
+      // Create a new product entry
+      const newProduct = new ProductModel({
+        title,
+        brand,
+        category: { main: correctCategory, sub: category.sub || "N/A" },
+        stock,
+        price,
+        rating: rating || "N/A",
+        features,
+        image_url: imageUrl,
+        sold: sold || 0
+      });
+  
+      // Save product to database
+      await newProduct.save();
+      res.status(201).json({ message: "Product added successfully", product: newProduct });
+  
     } catch (error) {
-        res.status(500).json({ message: error.message });
+      console.error("Error adding product:", error);
+      res.status(500).json({ message: error.message });
     }
 };
-
 
 export const getProductsByCategory = async (req, res) => {
     try {
@@ -97,6 +108,43 @@ export const getProductsByCategory = async (req, res) => {
     }
 };
 
+export const getProductById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: "Invalid product ID format" });
+        }
+
+        // 🔍 Step 1: Iterate over all collections to find where the product exists
+        const collections = await mongoose.connection.db.listCollections().toArray();
+        let foundProduct = null;
+
+        for (const collection of collections) {
+            const collectionName = collection.name;
+
+            // Dynamically create model for each collection
+            const ProductModel = mongoose.models[collectionName] || 
+                mongoose.model(collectionName, new mongoose.Schema({}, { strict: false }), collectionName);
+
+            // Check if the product exists in this collection
+            const product = await ProductModel.findById(id);
+            if (product) {
+                foundProduct = product;
+                break; // Stop searching once the product is found
+            }
+        }
+
+        if (!foundProduct) {
+            return res.status(404).json({ message: "Product not found in any category" });
+        }
+
+        res.status(200).json(foundProduct);
+
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
 export const deleteProduct = async (req, res) => {
     try {

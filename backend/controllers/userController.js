@@ -8,7 +8,6 @@ dotenv.config();
 
 // Register User
 
-
 export const registerUser = async (req, res) => {
   try {
     console.log("Received Registration Data:", req.body);
@@ -30,10 +29,6 @@ export const registerUser = async (req, res) => {
       process.env.ACTIVATION_KEY,
       { expiresIn: "5m" }
     );
-
-    // Send OTP via email
-    // const message = `Please verify your account to continue. Your OTP is: ${otp}`;
-    // Professionally formatted HTML email with copy button
     const message = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
       <h2 style="text-align: center; color:rgb(0, 0, 0);">BuyIt - OTP Verification</h2>
@@ -53,11 +48,9 @@ export const registerUser = async (req, res) => {
     </div>
   `;
 
-await sendMail(email, "BuyIt - OTP Verification", message);
+    // await sendMail(email, "BuyIt - OTP Verification", message);
 
-
-    await sendMail(email, "BuyIt - OTP Verification", message);
-    console.log("Activation Key:", activationKey);
+    await sendMail(email, "BuyIt - Account Verification", message);
     return res.status(200).json({
       message: "OTP sent to your email. Please verify your account!",
       activationKey,
@@ -68,7 +61,6 @@ await sendMail(email, "BuyIt - OTP Verification", message);
   }
 };
 
-
 //verify otp
 export const verifyUser = async (req, res) => {
   try {
@@ -76,7 +68,9 @@ export const verifyUser = async (req, res) => {
     const { otp, activationKey } = req.body;
 
     if (!activationKey) {
-      return res.status(400).json({ message: "Activation Key is missing. Please register again." });
+      return res
+        .status(400)
+        .json({ message: "Activation Key is missing. Please register again." });
     }
 
     let decoded;
@@ -84,7 +78,9 @@ export const verifyUser = async (req, res) => {
       decoded = jwt.verify(activationKey, process.env.ACTIVATION_KEY);
     } catch (error) {
       if (error.name === "TokenExpiredError") {
-        return res.status(400).json({ message: "OTP has expired. Please request a new one." });
+        return res
+          .status(400)
+          .json({ message: "OTP has expired. Please request a new one." });
       }
       return res.status(400).json({ message: "Invalid Activation Key." });
     }
@@ -92,13 +88,17 @@ export const verifyUser = async (req, res) => {
     console.log("Decoded JWT Data:", decoded);
 
     if (decoded.otp.toString() !== otp.toString()) {
-      return res.status(400).json({ message: "Incorrect OTP. Please try again." });
+      return res
+        .status(400)
+        .json({ message: "Incorrect OTP. Please try again." });
     }
 
     // Check if the user already exists
     const existingUser = await User.findOne({ email: decoded.email });
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists. Please log in." });
+      return res
+        .status(400)
+        .json({ message: "User already exists. Please log in." });
     }
 
     // Create new user
@@ -115,8 +115,6 @@ export const verifyUser = async (req, res) => {
     return res.status(500).json({ message: "Server error. Please try again." });
   }
 };
-
-
 
 //Login User
 export const loginUser = async (req, res) => {
@@ -138,7 +136,9 @@ export const loginUser = async (req, res) => {
     }
 
     // Generate JWT token
-    const token = jwt.sign({ _id: user.id }, process.env.JWT_SECRET, { expiresIn: "15d" });
+    const token = jwt.sign({ _id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "15d",
+    });
 
     console.log("Login successful for:", user.email);
     const { password: userPassword, ...userDetails } = user.toObject();
@@ -148,7 +148,6 @@ export const loginUser = async (req, res) => {
       user: userDetails,
       token,
     });
-
   } catch (error) {
     console.error("Error:", error.message);
     return res.status(500).json({ message: "Server error" });
@@ -156,53 +155,60 @@ export const loginUser = async (req, res) => {
 };
 
 //Profile View
-export const myProfile = async (req,res) =>{
-  try{
+export const myProfile = async (req, res) => {
+  try {
     const user = await User.findById(req.user._id).select("-password");
     return res.status(200).json({
       user,
     });
-  }catch(error){
+  } catch (error) {
     return res.json({
-      message: "error : "+error.message,
+      message: "error : " + error.message,
     });
   }
-}
-
+};
 
 export const deleteUser = async (req, res) => {
   try {
-      const { id } = req.params;
-      const user = await User.findById(id);
-      if (!user) {
-          return res.status(404).json({ message: "User not found" });
-      }
+    const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-      // Delete the user
-      await User.findByIdAndDelete(id);
+    // Delete the user
+    await User.findByIdAndDelete(id);
 
-      res.status(200).json({ message: "User deleted successfully" });
+    res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
-      res.status(500).json({ message: "Error deleting user", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error deleting user", error: error.message });
   }
 };
 
 export const updateUser = async (req, res) => {
   try {
-      const { id } = req.params; // Get user ID from URL params
-      const updateData = req.body; // Get updated fields from request body
+    const { id } = req.params; // Get user ID from URL params
+    const updateData = req.body; // Get updated fields from request body
 
-      // Check if user exists
-      const user = await User.findById(id);
-      if (!user) {
-          return res.status(404).json({ message: "User not found" });
-      }
+    // Check if user exists
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-      // Update user details
-      const updatedUser = await User.findByIdAndUpdate(id, updateData, { new: true });
+    // Update user details
+    const updatedUser = await User.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
 
-      res.status(200).json({ message: "User updated successfully", user: updatedUser });
+    res
+      .status(200)
+      .json({ message: "User updated successfully", user: updatedUser });
   } catch (error) {
-      res.status(500).json({ message: "Error updating user", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error updating user", error: error.message });
   }
 };

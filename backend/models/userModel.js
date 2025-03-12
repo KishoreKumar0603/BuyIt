@@ -17,28 +17,12 @@ const userSchema = new mongoose.Schema(
       country: { type: String },
     },
     profilePic: { type: String, default: "default.png" },
-    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
-    cart: [
-      {
-        productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
-        quantity: { type: Number, default: 1 },
-      },
-    ],
-    orders: [{ type: mongoose.Schema.Types.ObjectId, ref: "Order" }]
   },
   {
     timestamps:true
   }
 );
 
-
-
-// // Hash password before saving
-// userSchema.pre("save", async function (next) {
-//   if (!this.isModified("password")) return next();
-//   const salt = await bcrypt.genSalt(10);
-//   this.password = await bcrypt.hash(this.password, salt);
-// });
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);

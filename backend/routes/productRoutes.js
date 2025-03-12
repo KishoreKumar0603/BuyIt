@@ -1,11 +1,12 @@
 import express from "express";
-import { getProductsByCategory, addProduct, deleteProduct, updateProduct } from "../controllers/productController.js";
-
+import { getProductsByCategory, addProduct, deleteProduct, updateProduct, getProductById } from "../controllers/productController.js";
+import { upload } from "../middleware/upload.js"; // Ensure correct path
 
 const router = express.Router();
 
 router.get("/", getProductsByCategory);
-router.post('/add',addProduct);
+router.get("/:id", getProductById);
+router.post('/add',upload.single("file"),addProduct);
 router.delete('/:id',deleteProduct);
 router.put("/:id",updateProduct);
 

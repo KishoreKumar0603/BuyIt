@@ -9,6 +9,7 @@ import imgUpload from "./routes/imgUpload.js";
 import cartRoutes from "./routes/cartRouter.js";
 import wishlistRoutes from "./routes/wishlistRoutes.js";
 import orderRoutes from './routes/orderRoutes.js';
+import forgotPassRoutes from './routes/forgotPasswordRoutes.js';
 
 dotenv.config();
 
@@ -28,6 +29,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 app.use("/api/user", userRoutes);
+app.use("/api/user/forgot", forgotPassRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/products/category", categoryRoutes);
 app.use("/api/product", imgUpload);

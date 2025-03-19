@@ -1,7 +1,8 @@
 import express from "express";
 import {
   requestOTP,
-  verifyOTPAndResetPassword,
+  verifyOtp,
+  changePassword
 } from "../controllers/forgotPasswordController.js";
 
 const router = express.Router();
@@ -10,6 +11,8 @@ const router = express.Router();
 router.post("/request-otp", requestOTP);
 
 // Route to verify OTP and reset password
-router.post("/reset-password", verifyOTPAndResetPassword);
+router.post("/reset-password", verifyOtp);
+
+router.post("/change-password", changePassword);
 
 export default router;

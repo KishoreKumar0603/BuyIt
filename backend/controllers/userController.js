@@ -64,7 +64,6 @@ export const registerUser = async (req, res) => {
 //verify otp
 export const verifyUser = async (req, res) => {
   try {
-    console.log("Received OTP Verification Data:", req.body);
     const { otp, activationKey } = req.body;
 
     if (!activationKey) {
@@ -84,8 +83,6 @@ export const verifyUser = async (req, res) => {
       }
       return res.status(400).json({ message: "Invalid Activation Key." });
     }
-
-    console.log("Decoded JWT Data:", decoded);
 
     if (decoded.otp.toString() !== otp.toString()) {
       return res

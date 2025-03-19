@@ -1,8 +1,8 @@
-import User from "../models/User.js"; // Adjust this according to your User model
-import { sendMail } from "../utils/sendMail.js"; // Assuming you have a sendMail function
-import bcrypt from "bcrypt";
-import otpGenerator from "otp-generator";
+import User from "../models/userModel.js";
+import sendMail from "../middleware/sendMail.js"; 
+import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
+import jwt, { decode } from "jsonwebtoken";
 dotenv.config();
 // 1️⃣ Request OTP for password reset
 export const requestOTP = async (req, res) => {
@@ -13,13 +13,13 @@ export const requestOTP = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    const{name,phone} = user;
+    const { name, phone } = user;
     // Generate a 6-digit OTP
     const otp = Math.floor(1000 + Math.random() * 9000);
     const activationKey = jwt.sign(
-        {name, phone,email, otp },
-        process.env.ACTIVATION_KEY,
-        { expiresIn: "5m" }
+      { name, phone, email, otp },
+      process.env.ACTIVATION_KEY,
+      { expiresIn: "5m" }
     );
     const message = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
@@ -40,42 +40,75 @@ export const requestOTP = async (req, res) => {
     </div>
   `;
 
-    
     // Send OTP via email
     await sendMail(email, "BuyIt Password Reset OTP", message);
 
-    return res.status(200).json({ message: "OTP sent successfully" });
+    return res.status(200).json({
+      message: "OTP sent successfully",
+      activationKey,
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
 };
 
-// 2️⃣ Verify OTP and reset password
-export const verifyOTPAndResetPassword = async (req, res) => {
-  const { email, otp, newPassword } = req.body;
-
+export const verifyOtp = async (req, res) => {
   try {
-    if (!otpStore[email] || otpStore[email].otp !== otp) {
-      return res.status(400).json({ message: "Invalid or expired OTP" });
+    const { otp, activationKey } = req.body;
+    if (!activationKey) {
+      return res
+        .status(400)
+        .json({ message: "Activation Key is missing. Please Try again." });
     }
-
+    let decoded;
+    try {
+      decoded = jwt.verify(activationKey, process.env.ACTIVATION_KEY);
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return res
+          .status(400)
+          .json({ message: "OTP has expired. Please request a new one." });
+      }
+      return res.status(400).json({ message: "Invalid Activation Key." });
+    }
+    if (decoded.otp.toString() !== otp.toString()) {
+      return res
+        .status(400)
+        .json({ message: "Incorrect OTP. Please try again." });
+    }
+    const email = decoded.email;
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Hash the new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-    // Update the password
-    user.password = hashedPassword;
-    await user.save();
-
-    // Remove OTP from store
-    delete otpStore[email];
-
-    res.status(200).json({ message: "Password reset successful" });
+    return res.json({
+      message: "OTP Verified",
+      user,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    return res.json({
+      message: error.message,
+    });
   }
 };
+
+export const changePassword = async (req,res) =>{
+    try{
+        const {password_1, password_2} = req.body;
+        if(!password_1 || !password_2){
+            return res.json({
+                message:"Both field Required"
+            });
+        }
+        if(password_1.toString() !== password_2.toString()){
+            return res.json({
+                message:"Both field should be same"
+            });
+        }
+        const hashedPassword = await bcrypt.hash(password_1, 10);
+        
+        
+    }catch(error)
+    {
+        return res.json({
+            message : error.message
+        });
+    }
+}

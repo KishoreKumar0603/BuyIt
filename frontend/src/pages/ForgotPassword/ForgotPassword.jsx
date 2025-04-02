@@ -7,19 +7,27 @@ const ForgotPassword = () => {
   const navigate = useNavigate();
 
   const handleNext = async () => {
-    // Send username to backend to generate OTP
-    const response = await fetch("http://localhost:5000/api/send-otp", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username }),
-    });
-
-    if (response.ok) {
-      navigate("/otp-verification", { state: { username } });
-    } else {
-      alert("User not found!");
+    try {
+      const response = await fetch("http://localhost:5000/api/user/forgot/request-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: username }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        localStorage.setItem("activationKey", data.activationKey);  // Store resetKey in localStorage
+        navigate("/otp-verify", { state: { email: username } });
+      } else {
+        alert(data.message || "User not found!");
+      }
+    } catch (error) {
+      console.error("Error requesting OTP:", error);
+      alert("Something went wrong. Please try again.");
     }
   };
+  
 
   return (
     <div className="auth-container">

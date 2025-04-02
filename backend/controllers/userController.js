@@ -48,7 +48,6 @@ export const registerUser = async (req, res) => {
     </div>
   `;
 
-    // await sendMail(email, "BuyIt - OTP Verification", message);
 
     await sendMail(email, "BuyIt - Account Verification", message);
     return res.status(200).json({

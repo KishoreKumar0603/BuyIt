@@ -8,24 +8,43 @@ const ResetPassword = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { username } = location.state || {};
+  const resetToken = localStorage.getItem("resetToken");
 
   const handleResetPassword = async () => {
+    if (!resetToken) {
+      alert("Reset token is missing. Please try again.");
+      return;
+    }
+
+    if (password.length < 6) {
+      alert("Password must be at least 6 characters long.");
+      return;
+    }
+
     if (password !== confirmPassword) {
       alert("Passwords do not match!");
       return;
     }
 
-    const response = await fetch("http://localhost:5000/api/reset-password", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    });
+    try {
+      const response = await fetch("http://localhost:5000/api/user/forgot/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resetToken, password, confirmPassword }),
+      });
 
-    if (response.ok) {
-      alert("Password reset successfully!");
-      navigate("/");
-    } else {
-      alert("Error resetting password!");
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Password reset successfully!");
+        localStorage.removeItem("resetToken"); // Clear reset token
+        navigate("/");
+      } else {
+        alert(data.message);
+      }
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      alert("Something went wrong. Please try again.");
     }
   };
 

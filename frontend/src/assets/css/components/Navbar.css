@@ -1,0 +1,16 @@
+.form-control:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+
+}
+.navbar{
+    user-select: none;
+    box-shadow: var(--theme-box-shadow)  !important;
+}
+.input-group {
+    margin-bottom: 0 !important;
+}
+.bg-for-search,.bg-for-search:focus{
+    background: var(--theme-search-bg);
+}

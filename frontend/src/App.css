@@ -1,11 +1,29 @@
-*{
-  padding: 0px;
-  margin: 0px;
-  box-sizing: border-box;
-}
-
 :root{
   --theme-black-bg : black;
   --theme-black-text-color : white;
   --theme-secondary-color : #E6E6E6;
+  --theme-bg-space: #E6E6E6;
+  --theme-search-bg: #F0F0F0;
+  --theme-box-shadow: 1px 7px 12.3px -1px rgba(0, 0, 0, 0.25);  ;
+  --theme-secondary-text-color:#737373;
+}
+
+
+.home-layout{
+  background: var( --theme-bg-space);
+  min-height: 100vh;
+}
+.secondary{
+  color: var(--theme-secondary-text-color) !important;
+}
+label{
+  font-size: 1.3rem !important;
+}
+.text-edit{
+  color: #737373 !important;
+  transition: all 0.3s;
+}
+
+.text-edit:hover{
+  color: black !important;
 }

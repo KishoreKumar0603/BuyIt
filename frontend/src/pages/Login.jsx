@@ -11,18 +11,18 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault(); // Prevent page reload
-    console.log("Email : "+email+" pass : "+password);
+    console.log("Email : " + email + " pass : " + password);
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/user/login", 
-        { email, password }, 
+        "http://localhost:5000/api/user/login",
+        { email, password },
         { withCredentials: true }
       );
 
       if (res.data.token) {
         localStorage.setItem("token", res.data.token); // Store JWT in local storage
         alert(res.data.message);
-        navigate("/signup"); // Redirect to dashboard
+        navigate("/"); // Redirect to dashboard
       } else {
         setError(res.data.message);
       }
@@ -60,9 +60,13 @@ const Login = () => {
             />
           </div>
           <div className="text-start">
-            <Link to="/forgot-password" className="small">Forgot password?</Link>
+            <Link to="/forgot-password" className="small">
+              Forgot password?
+            </Link>
           </div>
-          <button type="submit" className="btn btn-dark w-100 mt-3">Login</button>
+          <button type="submit" className="btn btn-dark w-100 mt-3">
+            Login
+          </button>
         </form>
         <p className="text-center mt-3">
           Don't have an account? <Link to="/signup">Sign Up</Link>

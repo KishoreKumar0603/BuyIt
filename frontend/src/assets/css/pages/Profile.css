@@ -1,0 +1,42 @@
+.user-greetings {
+  height: 80px;
+  background: white;
+  width: 100%;
+}
+.user-pic-img {
+  height: 100%;
+}
+.box {
+  box-shadow: var(--theme-box-shadow) !important;
+}
+.sidebar-item {
+  position: relative;
+  text-align: center;
+}
+
+.sidebar-item .sidebar-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 8px 0;
+  font-size: 1.2rem;
+  color: black;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.sidebar-item:hover {
+  background-color: var(--theme-bg-space) !important;
+}
+
+.sidebar-item:hover .sidebar-link {
+  color: rgb(0, 0, 0) !important;
+}
+
+/* .sidebar-item .sidebar-link.active {
+  background-color: var(--theme-bg-space) !important; 
+  color: black !important;
+} */
+
+.sidebar-item .sidebar-link.active + .sidebar-item {
+  background: #343a40 !important;
+}

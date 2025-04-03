@@ -13,17 +13,7 @@
   background: var( --theme-bg-space);
   min-height: 100vh;
 }
+
 .secondary{
   color: var(--theme-secondary-text-color) !important;
-}
-label{
-  font-size: 1.3rem !important;
-}
-.text-edit{
-  color: #737373 !important;
-  transition: all 0.3s;
-}
-
-.text-edit:hover{
-  color: black !important;
 }

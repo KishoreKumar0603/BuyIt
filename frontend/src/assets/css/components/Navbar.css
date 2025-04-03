@@ -1,8 +1,12 @@
-.form-control:focus {
+.bg-for-search:focus {
   outline: none !important;
   box-shadow: none !important;
   border: none !important;
 
+}
+.form-control:focus{
+    box-shadow:  none !important;
+    border: 1px solid black;
 }
 .navbar{
     user-select: none;

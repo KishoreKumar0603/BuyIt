@@ -22,6 +22,7 @@ import { RootCart } from "./Components/CartComponents/RootCart.jsx";
 import { Order } from "./Components/Order/Order.jsx";
 import { ProductDetails } from "./Components/Product/ProductDetails.jsx";
 import { ProductList } from "./Components/Product/ProductList.jsx";
+import { RootWishlist } from "./Components/Wishlist/RootWishlist.jsx";
 
 function App() {
   const router = createBrowserRouter(
@@ -31,6 +32,7 @@ function App() {
           <Route index element= {<Home />} />
           <Route path="cart" element={<RootCart /> } />
           <Route path="orders" element={<Order /> } />
+          <Route path="wishlist" element={<RootWishlist />} />
           <Route path="product-detail" element={<ProductDetails />} />
           <Route path="product-lists" element={<ProductList />} />
           <Route path="profile" element={<ProfileLayout />}>

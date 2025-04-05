@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Button, Form } from "react-bootstrap";
-
 import { Link } from "react-router-dom";
+import { useOutletContext } from "react-router-dom";
 export const Personal = () => {
+  const {user} = useOutletContext();
   const [isEditing, setIsEditing] = useState({
     name: false,
     username: false,
@@ -11,11 +12,11 @@ export const Personal = () => {
   });
 
   const [userData, setUserData] = useState({
-    name: "Kishore Kumar S",
-    gender: "Male",
-    username: "kishorekumar5463",
-    email: "kishorekumar5463@gmail.com",
-    mobile: "9043479026",
+    name: user.name,
+    gender: user.gender,
+    username: user.username,
+    email: user.email,
+    mobile: user.phone,
   });
 
   const handleEdit = (field) => {

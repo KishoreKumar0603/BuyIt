@@ -73,24 +73,9 @@ export const Navbar = () => {
           <div className="d-flex flex-column flex-lg-row w-100 justify-content-lg-between align-items-lg-center">
             
             {/* Search Bar */}
-            {/* Search Bar */}
-            {/* <div className="d-none d-md-flex w-50 justify-content-md-center">
-              <SearchBar />
-            </div> */}
             <div className="d-none d-md-flex w-50 justify-content-md-center">
-              <div className="input-group">
-                <span className="input-group-text border-0 bg-for-search">
-                  <FaSearch size={14} className="text-muted" />
-                </span>
-                <input
-                  type="text"
-                  className="form-control border-0 bg-for-search"
-                  placeholder="Search products, brands and more"
-                  aria-label="Search"
-                />
-              </div>
+              <SearchBar />
             </div>
-
             {/* Navigation Links */}
             <ul className="navbar-nav d-md-flex justify-content-md-around w-50">
               {!isLoggedIn ? (

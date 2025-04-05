@@ -18,3 +18,7 @@
 .bg-for-search,.bg-for-search:focus{
     background: var(--theme-search-bg);
 }
+
+.navbar-toggler:focus{
+    box-shadow: none !important;
+}

@@ -18,6 +18,10 @@ import { Payments } from "./Components/profileComponents/Payments.jsx";
 import { Address } from "./Components/profileComponents/Address.jsx";
 import { Password } from "./Components/profileComponents/Password.jsx";
 import { Settings } from "./Components/profileComponents/Settings.jsx";
+import { RootCart } from "./Components/CartComponents/RootCart.jsx";
+import { Order } from "./Components/Order/Order.jsx";
+import { ProductDetails } from "./Components/Product/ProductDetails.jsx";
+import { ProductList } from "./Components/Product/ProductList.jsx";
 
 function App() {
   const router = createBrowserRouter(
@@ -25,6 +29,10 @@ function App() {
       <>
         <Route path="/" element={<RootLayout />} >
           <Route index element= {<Home />} />
+          <Route path="cart" element={<RootCart /> } />
+          <Route path="orders" element={<Order /> } />
+          <Route path="product-detail" element={<ProductDetails />} />
+          <Route path="product-lists" element={<ProductList />} />
           <Route path="profile" element={<ProfileLayout />}>
             <Route index element={<Navigate to="personal" replace />} />
             <Route path="personal" element={<Personal />} />
@@ -49,24 +57,6 @@ function App() {
   )
 
   return <RouterProvider router={router} ></RouterProvider>
-
-
-  // return (
-  //   <>
-  //     <Router>
-  //       <Routes>
-  //         <Route path="/" element={<Home />} />
-  //         <Route path="/login" element={<Login />} />
-  //         <Route path="/signup" element={<Signup />} />
-  //         <Route path="/forgot-password" element={<ForgotPassword />} />
-  //         <Route path="/otp-verification" element={<OtpVerification />} />
-  //         <Route path="/reset-password" element={<ResetPassword />} />
-  //         <Route path="/otp-verify" element={<Otp />} />
-  //         <Route path="*" element={<NotFound />} />
-  //       </Routes>
-  //     </Router>
-  //   </>
-  // );
 }
 
 export default App;

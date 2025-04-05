@@ -116,7 +116,7 @@ export const verifyUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log("Login attempt with email:", email); // Debugging log
+    console.log("Login attempt with email:", email); // Debugging log 
 
     // Check if user exists
     const user = await User.findOne({ email });

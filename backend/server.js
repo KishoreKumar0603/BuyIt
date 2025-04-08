@@ -18,7 +18,7 @@ app.use(
   cors({
     origin: "http://localhost:5173",
     credentials: true,
-    methods: "GET,POST,PUT,DELETE",
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: "Content-Type,Authorization",
   })
 );
@@ -33,7 +33,7 @@ app.use("/api/user/forgot", forgotPassRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/products/category", categoryRoutes);
 app.use("/api/product", imgUpload);
-app.use("/cart", cartRoutes);
+app.use("/api/cart", cartRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/orders",orderRoutes);
 

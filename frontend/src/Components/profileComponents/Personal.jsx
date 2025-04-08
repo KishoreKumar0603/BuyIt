@@ -9,6 +9,7 @@ export const Personal = () => {
     username: false,
     email: false,
     mobile: false,
+    gender:false,
   });
 
   const [userData, setUserData] = useState({
@@ -27,9 +28,32 @@ export const Personal = () => {
     setUserData({ ...userData, [e.target.name]: e.target.value });
   };
 
-  const handleSave = (field) => {
-    setIsEditing({ ...isEditing, [field]: false });
+  // const handleSave = (field) => {
+  //   setIsEditing({ ...isEditing, [field]: false });
+  // };
+  const handleSave = async (field) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/user/update/${user._id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ [field]: userData[field] }),
+      });
+      console.log("response Fetched....");
+  
+      if (!response.ok) throw new Error("Update failed");
+  
+      const data = await response.json();
+      console.log("User updated:", data);
+  
+      setIsEditing({ ...isEditing, [field]: false });
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong. Try again.");
+    }
   };
+  
 
   return (
     <div className="container p-4 bg-white box">
@@ -55,8 +79,8 @@ export const Personal = () => {
           Gender <span className="text-edit" onClick={() => handleEdit("gender")} style={{ cursor: "pointer" }}> ✎ edit</span>
         </label>
         <div>
-          <Form.Check inline label="Male" type="radio" name="gender" value="Male" checked={userData.gender === "Male"} onChange={handleChange} disabled={!isEditing.gender} />
-          <Form.Check inline label="Female" type="radio" name="gender" value="Female" checked={userData.gender === "Female"} onChange={handleChange} disabled={!isEditing.gender} />
+          <Form.Check inline label="Male" type="radio" name="gender" value="male" checked={userData.gender === "male"} onChange={handleChange} disabled={!isEditing.gender} />
+          <Form.Check inline label="Female" type="radio" name="gender" value="female" checked={userData.gender === "female"} onChange={handleChange} disabled={!isEditing.gender} />
         </div>
         {isEditing.gender && <Button onClick={() => handleSave("gender")} className="btn-save mt-3">Save</Button>}
       </div>

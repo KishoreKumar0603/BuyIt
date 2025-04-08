@@ -9,6 +9,9 @@
 .box {
   box-shadow: var(--theme-box-shadow) !important;
   background-color: white;
+
+  border: none !important;
+  border-radius: 0px !important;
 }
 .sidebar-item {
   position: relative;

@@ -18,6 +18,6 @@ router.post("/register", registerUser);
 router.post("/verify", verifyUser)
 router.get("/my-profile", isAuth, myProfile);
 router.delete('/delete/:id',deleteUser);
-router.put('/:id',updateUser);
+router.patch('/update/:id',updateUser);
 
 export default router;

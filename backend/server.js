@@ -10,6 +10,7 @@ import cartRoutes from "./routes/cartRouter.js";
 import wishlistRoutes from "./routes/wishlistRoutes.js";
 import orderRoutes from './routes/orderRoutes.js';
 import forgotPassRoutes from './routes/forgotPasswordRoutes.js';
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
@@ -22,7 +23,7 @@ app.use(
     allowedHeaders: "Content-Type,Authorization",
   })
 );
-
+app.use(cookieParser());
 // ✅ Handles form data properly
 app.use(express.urlencoded({ extended: true }));
 

@@ -10,23 +10,24 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // Prevent page reload
+    e.preventDefault();
     console.log("Email : " + email + " pass : " + password);
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/user/login",
-        { email, password },
-        { withCredentials: true }
-      );
+      const res = await axios.post("http://localhost:5000/api/user/login", {
+        email,
+        password,
+      });
 
       if (res.data.token) {
-        localStorage.setItem("token", res.data.token); // Store JWT in local storage
+        // Save token in localStorage
+        localStorage.setItem("token", res.data.token);
         alert(res.data.message);
-        navigate("/"); // Redirect to dashboard
+        navigate("/"); // Navigate to dashboard/home
       } else {
-        setError(res.data.message);
+        setError(res.data.message || "Something went wrong");
       }
     } catch (err) {
+      console.error("Login error:", err.response?.data || err.message);
       setError("Login failed. Please check your credentials.");
     }
   };

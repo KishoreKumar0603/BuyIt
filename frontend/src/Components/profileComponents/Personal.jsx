@@ -33,10 +33,12 @@ export const Personal = () => {
   // };
   const handleSave = async (field) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/user/update/${user._id}`, {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:5000/api/user/update`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({ [field]: userData[field] }),
       });

@@ -132,7 +132,7 @@ export const loginUser = async (req, res) => {
     }
 
     // Generate JWT token
-    const token = jwt.sign({ _id: user.id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "15d",
     });
 
@@ -150,6 +150,7 @@ export const loginUser = async (req, res) => {
   }
 };
 
+
 //Profile View
 export const myProfile = async (req, res) => {
   try {
@@ -164,38 +165,76 @@ export const myProfile = async (req, res) => {
   }
 };
 
+// Delete Authenticated User
 export const deleteUser = async (req, res) => {
   try {
-    const { id } = req.params;
-    const user = await User.findById(id);
+    const userId = req.user._id;
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Delete the user
-    await User.findByIdAndDelete(id);
-
+    await User.findByIdAndDelete(userId);
+    res.clearCookie("token"); // Optional: log out user after deletion
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error deleting user", error: error.message });
+    res.status(500).json({ message: "Error deleting user", error: error.message });
   }
 };
 
+// Update Authenticated User
 export const updateUser = async (req, res) => {
   try {
     const updates = req.body;
-    const user = await User.findByIdAndUpdate(req.params.id, updates, {
+    const userId = req.user._id;
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updates, {
       new: true,
       runValidators: true,
-    });
+    }).select("-password");
 
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!updatedUser) return res.status(404).json({ message: "User not found" });
 
-    res.json(user);
+    res.status(200).json({ message: "Profile updated successfully", user: updatedUser });
   } catch (error) {
-    console.error(error);
+    console.error("Update Error:", error.message);
     res.status(500).json({ message: "Server error" });
   }
 };
+
+
+// export const deleteUser = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const user = await User.findById(id);
+//     if (!user) {
+//       return res.status(404).json({ message: "User not found" });
+//     }
+
+//     // Delete the user
+//     await User.findByIdAndDelete(id);
+
+//     res.status(200).json({ message: "User deleted successfully" });
+//   } catch (error) {
+//     res
+//       .status(500)
+//       .json({ message: "Error deleting user", error: error.message });
+//   }
+// };
+
+// export const updateUser = async (req, res) => {
+//   try {
+//     const updates = req.body;
+//     const user = await User.findByIdAndUpdate(req.params.id, updates, {
+//       new: true,
+//       runValidators: true,
+//     });
+
+//     if (!user) return res.status(404).json({ message: "User not found" });
+
+//     res.json(user);
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };

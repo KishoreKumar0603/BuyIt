@@ -5,94 +5,34 @@ import getProductModel from "../models/products.js";
 const router = express.Router();
 
 import mongoose from "mongoose";
-// // ✅ Add item to cart
-// router.post("/add", async (req, res) => {
-//     try {
-//       const { userId, productId, category, quantity, price } = req.body; 
-//       let cart = await Cart.findOne({ userId });
-  
-//       if (!cart) {
-//         cart = new Cart({ userId, items: [], totalPrice: 0 });
-//       }
-//       if (!category) {
-//         return res.status(400).json({ error: "Category is required" });
-//       }
-  
-//       const existingItem = cart.items.find((item) => item.productId.toString() === productId);
-      
-//       if (existingItem) {
-//         existingItem.quantity += quantity;
-//       } else {
-//         cart.items.push({ productId, category, quantity });
-//       }
-  
-//       cart.totalPrice += price * quantity;
-//       await cart.save();
-//       res.status(200).json(cart);
-//     } catch (err) {
-//       res.status(500).json({ error: err.message });
-//     }
-// });
-
 // ✅ Add item to cart
 router.post("/add", async (req, res) => {
-  try {
-    const { userId, productId, category, quantity } = req.body;
-
-    if (!category) {
-      return res.status(400).json({ error: "Category is required" });
-    }
-
-    const Product = getProductModel(category);
-    const product = await Product.findById(productId);
-    if (!product) {
-      return res.status(404).json({ error: "Product not found" });
-    }
-
-    if (quantity > product.stock) {
-      return res.status(400).json({ error: `Only ${product.stock} in stock` });
-    }
-
-    let cart = await Cart.findOne({ userId });
-    if (!cart) {
-      cart = new Cart({ userId, items: [], totalPrice: 0 });
-    }
-
-    const existingItem = cart.items.find(
-      (item) => item.productId.toString() === productId
-    );
-
-    const itemTotal = product.price * quantity;
-
-    if (existingItem) {
-      const newQuantity = existingItem.quantity + quantity;
-
-      if (newQuantity > product.stock) {
-        return res.status(400).json({ error: `Only ${product.stock} in stock` });
+    try {
+      const { userId, productId, category, quantity, price } = req.body; 
+      let cart = await Cart.findOne({ userId });
+  
+      if (!cart) {
+        cart = new Cart({ userId, items: [], totalPrice: 0 });
       }
-
-      existingItem.quantity = newQuantity;
-      existingItem.itemTotal = newQuantity * product.price;
-    } else {
-      cart.items.push({
-        productId,
-        category,
-        quantity,
-        itemTotal,
-      });
+      if (!category) {
+        return res.status(400).json({ error: "Category is required" });
+      }
+  
+      const existingItem = cart.items.find((item) => item.productId.toString() === productId);
+      
+      if (existingItem) {
+        existingItem.quantity += quantity;
+      } else {
+        cart.items.push({ productId, category, quantity });
+      }
+  
+      cart.totalPrice += price * quantity;
+      await cart.save();
+      res.status(200).json(cart);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
     }
-
-    // 🔄 Recalculate totalPrice
-    cart.totalPrice = cart.items.reduce((sum, item) => sum + item.itemTotal, 0);
-
-    await cart.save();
-    res.status(200).json(cart);
-  } catch (err) {
-    console.error("Add to cart error:", err.message);
-    res.status(500).json({ error: err.message });
-  }
 });
-
   
 
 
@@ -155,38 +95,47 @@ router.get('/:userId', async (req, res) => {
   }
 });
 
+// ✅ Update cart item quantity
 router.put("/update/:userId", async (req, res) => {
   try {
-    const { productId, category, quantity } = req.body;
-
-    const Product = getProductModel(category);
-    const product = await Product.findById(productId);
-
-    if (!product) return res.status(404).json({ message: "Product not found" });
-
-    if (quantity > product.stock) {
-      return res.status(400).json({ message: `Only ${product.stock} in stock` });
-    }
-
+    const { productId, quantity, price } = req.body;
     const cart = await Cart.findOne({ userId: req.params.userId });
+
     if (!cart) return res.status(404).json({ message: "Cart not found" });
 
     const item = cart.items.find((item) => item.productId.toString() === productId);
-
     if (item) {
+      cart.totalPrice += (quantity - item.quantity) * price;
       item.quantity = quantity;
-      item.itemTotal = product.price * quantity;
-
-      cart.totalPrice = cart.items.reduce((sum, i) => sum + i.itemTotal, 0);
-
       await cart.save();
       res.status(200).json(cart);
     } else {
-      res.status(404).json({ message: "Item not found in cart" });
+      res.status(404).json({ message: "Item not found" });
     }
   } catch (err) {
-    console.error("❌ Update cart error:", err.message);
     res.status(500).json({ error: err.message });
+  }
+});
+// patch update
+router.patch('/update/:userId/:itemId', async (req, res) => {
+  const { userId, itemId } = req.params;
+  const { quantity } = req.body;
+
+  try {
+    const cart = await Cart.findOne({ userId });
+
+    if (!cart) return res.status(404).json({ message: 'Cart not found' });
+
+    const item = cart.items.id(itemId);
+    if (!item) return res.status(404).json({ message: 'Item not found' });
+
+    item.quantity = quantity;
+    await cart.save();
+
+    res.json({ message: 'Quantity updated', cart });
+  } catch (error) {
+    console.error('Update error:', error.message);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

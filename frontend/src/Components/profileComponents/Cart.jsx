@@ -87,7 +87,7 @@ export const Cart = () => {
 
                 <p className="secondary m-0">Brand: {item.product?.brand || "Brand"}</p>
                 <p className="secondary m-0">Rating: {item.product?.rating || "N/A"}</p>
-                <p className="text-muted">Stock: {item.product?.stock || 0}</p>
+                <p className="text-muted ">Stock: {item.product?.stock || 0}</p>
                 <h4 className="m-0">₹ {item.product?.price || 0}</h4>
               </div>
               <div className="col-md-12 mt-2">

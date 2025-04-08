@@ -38,7 +38,7 @@ const ProfileLayout = () => {
       <div className="row">
         <div className="col-md-3">
           <UserGreeting user={userData} />
-          <Sidebar user={userData} />
+          <Sidebar />
         </div>
 
         {/* Content Area */}

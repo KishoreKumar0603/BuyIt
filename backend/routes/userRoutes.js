@@ -13,11 +13,14 @@ import { isAuth } from "../middleware/isAuth.js";
 const router = express.Router();
 
 
+// Routes 
 router.post("/login", loginUser);
 router.post("/register", registerUser);
 router.post("/verify", verifyUser)
+
+// Protected Routes
 router.get("/my-profile", isAuth, myProfile);
-router.delete('/delete/:id',deleteUser);
-router.patch('/update/:id',updateUser);
+router.delete('/delete', isAuth, deleteUser);
+router.patch('/update', isAuth, updateUser);
 
 export default router;

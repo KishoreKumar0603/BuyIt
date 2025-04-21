@@ -2,16 +2,18 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useAuth } from "../../context/AuthContext"; // ✅ import useAuth
+import { useAuth } from "../../context/AuthContext";
 import "../../assets/css/components/ProductListing.css";
+import { PiHeartDuotone, PiHeartStraightFill  } from "react-icons/pi";
 
 export const ProductListing = () => {
   const { category } = useParams();
-  const { user } = useAuth(); // ✅ get user from AuthContext
+  const { user } = useAuth();
 
   const [products, setProducts] = useState([]);
   const [wishlist, setWishlist] = useState([]);
   const [minPrice] = useState(0);
+  const [sortOrder, setSortOrder] = useState(""); // asc or desc
 
   const priceBreakpoints = [
     500, 1000, 2500, 5000, 7500, 10000, 15000, 20000, 25000, 30000, 35000,
@@ -33,53 +35,69 @@ export const ProductListing = () => {
         .then((res) => {
           if (Array.isArray(res.data)) {
             setProducts(res.data);
-            console.log(res.data);
           } else {
-            console.error("Invalid product response format");
             setProducts([]);
+            console.error("Invalid product format");
           }
         })
         .catch((err) => {
-          console.error("Error fetching products:", err);
           setProducts([]);
+          console.error("Error fetching products:", err);
         });
     }
   }, [category]);
 
   useEffect(() => {
-    if (user) {
+    const storedWishlist = localStorage.getItem("wishlist");
+
+    if (storedWishlist) {
+      setWishlist(JSON.parse(storedWishlist));
+    } else if (user) {
       axios
         .get("http://localhost:5000/api/wishlist/my-wishlist", {
           headers: {
-            Authorization: `Bearer ${user.token}`, // ✅ authorized wishlist fetch
+            Authorization: `Bearer ${user.token}`,
           },
         })
         .then((res) => {
           if (Array.isArray(res.data)) {
-            // Set wishlist to an array of product IDs
-            setWishlist(res.data.map((item) => item.productId));
+            const wishlistData = res.data.map((item) => item.productId);
+            setWishlist(wishlistData);
+            localStorage.setItem("wishlist", JSON.stringify(wishlistData));
           }
         })
-        .catch((err) => console.error("Failed to fetch wishlist", err));
+        .catch((err) => console.error("Wishlist fetch error:", err));
     }
   }, [user]);
 
-  const findNearestBreakpoint = (value) => {
-    return priceBreakpoints.reduce((prev, curr) =>
-      Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
-    );
-  };
-
   const handlePriceChange = (e) => {
     const selectedPrice = Number(e.target.value);
-    const nearestPrice = findNearestBreakpoint(selectedPrice);
-    setMaxPrice(nearestPrice);
+    const nearest = priceBreakpoints.reduce((prev, curr) =>
+      Math.abs(curr - selectedPrice) < Math.abs(prev - selectedPrice)
+        ? curr
+        : prev
+    );
+    setMaxPrice(nearest);
   };
 
-  const filteredProducts = products.filter((product) => {
-    const price = parseFloat(product.price);
-    return !isNaN(price) && price >= minPrice && price <= maxPrice;
-  });
+  const filteredProducts = products
+    .filter((product) => {
+      const price = parseFloat(product.price);
+      return !isNaN(price) && price >= minPrice && price <= maxPrice;
+    })
+    .sort((a, b) => {
+      const priceA = parseFloat(a.price);
+      const priceB = parseFloat(b.price);
+      if (sortOrder === "asc") return priceA - priceB;
+      if (sortOrder === "desc") return priceB - priceA;
+      return 0;
+    });
+
+  const clearFilter = () => {
+    setMaxPrice(priceBreakpoints[priceBreakpoints.length - 1]);
+    setSortOrder(""); // Reset sorting
+    setCurrentPage(1); // Reset pagination to page 1
+  };
 
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
@@ -90,6 +108,10 @@ export const ProductListing = () => {
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const truncateText = (text, maxLength) => {
+    return text?.length > maxLength ? text.slice(0, maxLength) + "..." : text;
+  };
 
   const toggleWishlist = async (productId, category) => {
     if (!user) {
@@ -107,21 +129,23 @@ export const ProductListing = () => {
 
     try {
       if (isInWishlist) {
-        // Remove from wishlist
         await axios.delete(
           `http://localhost:5000/api/wishlist/remove/${productId}`,
           config
         );
-        setWishlist((prev) => prev.filter((id) => id !== productId)); // Remove the product from the wishlist state
+        const updated = wishlist.filter((id) => id !== productId);
+        setWishlist(updated);
+        localStorage.setItem("wishlist", JSON.stringify(updated));
         toast.success("Removed from wishlist");
       } else {
-        // Add to wishlist
         await axios.post(
           "http://localhost:5000/api/wishlist/add/",
-          { productId, category, userId: user.id }, // Include category here
+          { productId, category, userId: user.id },
           config
         );
-        setWishlist((prev) => [...prev, productId]); // Add the product to the wishlist state
+        const updated = [...wishlist, productId];
+        setWishlist(updated);
+        localStorage.setItem("wishlist", JSON.stringify(updated));
         toast.success("Added to wishlist");
       }
     } catch (err) {
@@ -135,10 +159,11 @@ export const ProductListing = () => {
       <div className="d-flex p-3">
         <div
           className="p-3 me-3 box"
-          style={{ width: "250px", height: "200px" }}
+          style={{ width: "250px", height: "400px" }}
         >
           <h5 className="mb-3">Filters</h5>
-          <div>
+
+          <div className="mb-3">
             <label className="form-label">Price</label>
             <input
               type="range"
@@ -153,6 +178,54 @@ export const ProductListing = () => {
               <small>Min: ₹{minPrice}</small>
               <small>Max: ₹{maxPrice}</small>
             </div>
+          </div>
+
+          <hr />
+
+          <div>
+            <label className="form-label">Sort by Price</label>
+            <div className="form-check">
+              <input
+                className="form-check-input"
+                type="radio"
+                name="sortOrder"
+                id="lowToHigh"
+                value="asc"
+                checked={sortOrder === "asc"}
+                onChange={(e) => setSortOrder(e.target.value)}
+              />
+              <label
+                className="form-check-label label-radio"
+                htmlFor="lowToHigh"
+              >
+                Low to High
+              </label>
+            </div>
+            <div className="form-check">
+              <input
+                className="form-check-input"
+                type="radio"
+                name="sortOrder"
+                id="highToLow"
+                value="desc"
+                checked={sortOrder === "desc"}
+                onChange={(e) => setSortOrder(e.target.value)}
+              />
+              <label
+                className="form-check-label label-radio"
+                htmlFor="highToLow"
+              >
+                High to Low
+              </label>
+            </div>
+          </div>
+          <div>
+            <a
+              href="#"
+              onClick={clearFilter}
+              className="text-decoration-none text-primary mt-2"
+              style={{ cursor: "pointer" }}
+            >clear Filter</a>
           </div>
         </div>
 
@@ -182,7 +255,7 @@ export const ProductListing = () => {
                   </div>
                   <div className="col-10">
                     <div className="d-flex justify-content-between">
-                      <h5>{product.title}</h5>
+                      <h5>{truncateText(product.title, 90)}</h5>
                       <button
                         className="btn btn-sm"
                         onClick={() =>
@@ -193,8 +266,7 @@ export const ProductListing = () => {
                         }
                         style={{ fontSize: "20px", color: "black" }}
                       >
-                        {/* Check if product is in wishlist and display filled or empty heart accordingly */}
-                        {wishlist.includes(product._id) ? "♥" : "♡"}
+                        {wishlist.includes(product._id) ? <PiHeartStraightFill /> : <PiHeartDuotone />}
                       </button>
                     </div>
                     <small className="text-muted d-block mb-1">
@@ -215,41 +287,45 @@ export const ProductListing = () => {
         </div>
       </div>
 
-      <div className="d-flex justify-content-center mt-4">
-        <nav aria-label="Page navigation">
-          <ul className="pagination">
-            <li className="page-item">
-              <button
-                className="page-link text-dark"
-                onClick={() => paginate(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </button>
-            </li>
-            {[...Array(totalPages)].map((_, index) => (
-              <li key={index} className="page-item">
+      {filteredProducts.length > 10 && (
+        <div className="d-flex justify-content-center mt-4">
+          <nav aria-label="Page navigation">
+            <ul className="pagination">
+              <li className="page-item">
                 <button
                   className="page-link text-dark"
-                  onClick={() => paginate(index + 1)}
-                  aria-current={currentPage === index + 1 ? "page" : undefined}
+                  onClick={() => paginate(currentPage - 1)}
+                  disabled={currentPage === 1}
                 >
-                  {index + 1}
+                  Previous
                 </button>
               </li>
-            ))}
-            <li className="page-item">
-              <button
-                className="page-link text-dark"
-                onClick={() => paginate(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </div>
+              {[...Array(totalPages)].map((_, index) => (
+                <li key={index} className="page-item">
+                  <button
+                    className="page-link text-dark"
+                    onClick={() => paginate(index + 1)}
+                    aria-current={
+                      currentPage === index + 1 ? "page" : undefined
+                    }
+                  >
+                    {index + 1}
+                  </button>
+                </li>
+              ))}
+              <li className="page-item">
+                <button
+                  className="page-link text-dark"
+                  onClick={() => paginate(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      )}
     </>
   );
 };

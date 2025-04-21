@@ -6,3 +6,7 @@
 .product-card{
     transition: all 0.3s !important;
 }
+
+.label-radio{
+  font-size: 15px !important;
+}

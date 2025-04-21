@@ -16,7 +16,7 @@ const CategoryDropdowns = () => {
     <div className="category-container box py-3 d-flex justify-content-around align-items-center">
       {categories.map((cat, index) => (
         <Link
-          to={`/products/mobiles`}
+          to={`/products/laptops`}
           key={index}
           className="category-item text-center px-3 text-decoration-none text-dark"
         >

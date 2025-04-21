@@ -8,8 +8,9 @@ const router = express.Router();
 // ✅ Add product to wishlist with category validation
 router.post("/add", isAuth, async (req, res) => {
   try {
-    const userId = req.user._id;
-    let { productId, category } = req.body;
+    // const userId = req.user._id;
+    let { productId, category , userId} = req.body;
+    console.log(category);
 
     // 🚨 Check if required fields exist
     if (!productId || !category) {

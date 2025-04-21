@@ -28,9 +28,6 @@ export const Personal = () => {
     setUserData({ ...userData, [e.target.name]: e.target.value });
   };
 
-  // const handleSave = (field) => {
-  //   setIsEditing({ ...isEditing, [field]: false });
-  // };
   const handleSave = async (field) => {
     try {
       const token = localStorage.getItem("token");

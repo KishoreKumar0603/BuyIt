@@ -82,9 +82,9 @@ router.post("/add", isAuth, async (req, res) => {
 });
 
 // ✅ Get user's wishlist
-router.get("/my-wishlist/", isAuth,  async (req, res) => {
+router.get("/my-wishlist", isAuth, async (req, res) => {
   try {
-    const userId = req.params.userId;
+    const userId = req.user._id;
     const wishlist = await Wishlist.findOne({ userId });
 
     if (!wishlist || wishlist.products.length === 0) {
@@ -94,59 +94,79 @@ router.get("/my-wishlist/", isAuth,  async (req, res) => {
     let populatedWishlist = [];
 
     for (const item of wishlist.products) {
-      let ProductModel;
+      try {
+        // ✅ Check if model exists before defining
+        let ProductModel;
+        if (mongoose.models[item.category]) {
+          ProductModel = mongoose.model(item.category);
+        } else {
+          ProductModel = mongoose.model(
+            item.category,
+            new mongoose.Schema({}, { strict: false }),
+            item.category
+          );
+        }
 
-      if (mongoose.models[item.category]) {
-        ProductModel = mongoose.model(item.category);
-      } else {
-        ProductModel = mongoose.model(
-          item.category,
-          new mongoose.Schema({}, { strict: false }),
-          item.category
+        const product = await ProductModel.findById(item.productId);
+        if (product) {
+          populatedWishlist.push({
+            ...product.toObject(),
+            category: item.category,
+          });
+        }
+      } catch (err) {
+        console.error(
+          `Error fetching product from collection ${item.category}:`,
+          err.message
         );
-      }
-
-      const product = await ProductModel.findById(item.productId);
-
-      if (product) {
-        populatedWishlist.push({
-          ...product.toObject(),
-          category: item.category,
-          productId: item.productId,
-        });
       }
     }
 
     res.status(200).json(populatedWishlist);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: error.message });
   }
 });
 
-// REMOVE item from wishlist
-router.put("/remove-from-wishlist", isAuth,  async (req, res) => {
-  const { userId, productId, category } = req.body;
-
-  if (!userId || !productId || !category) {
-    return res.status(400).json({ message: "Missing data" });
-  }
-
+// ✅ Remove product from wishlist
+router.post("/remove", isAuth, async (req, res) => {
   try {
-    const wishlist = await Wishlist.findOne({ userId });
+    const userId = req.user._id;
+    const { productId } = req.body;
 
-    if (!wishlist) {
-      return res.status(404).json({ message: "Wishlist not found" });
+    if (!productId) {
+      return res.status(400).json({ message: "Product ID is required" });
     }
 
-    wishlist.products = wishlist.products.filter(
-      (item) => !(item.productId === productId && item.category === category)
+    let wishlist = await Wishlist.findOne({ userId });
+
+    if (!wishlist || !wishlist.products || wishlist.products.length === 0) {
+      return res.status(404).json({ message: "Wishlist not found or empty" });
+    }
+
+    // 🚨 Ensure `productId` is a valid ObjectId
+    const productIdStr = productId.toString();
+
+    const productIndex = wishlist.products.findIndex(
+      (item) => item?.productId?.toString() === productIdStr
     );
 
+    if (productIndex === -1) {
+      return res.status(404).json({ message: "Product not found in wishlist" });
+    }
+
+    const category = wishlist.products[productIndex].category;
+
+    // Remove the product from the wishlist array
+    wishlist.products.splice(productIndex, 1);
     await wishlist.save();
 
-    res.status(200).json({ message: "Item removed from wishlist" });
+    res
+      .status(200)
+      .json({ message: "Product removed from wishlist", category });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({ error: error.message });
   }
 });
 

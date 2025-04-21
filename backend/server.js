@@ -11,6 +11,8 @@ import wishlistRoutes from "./routes/wishlistRoutes.js";
 import orderRoutes from './routes/orderRoutes.js';
 import forgotPassRoutes from './routes/forgotPasswordRoutes.js';
 import cookieParser from "cookie-parser";
+import addressRoutes from './routes/addressRoutes.js';
+
 
 dotenv.config();
 
@@ -37,6 +39,7 @@ app.use("/api/product", imgUpload);
 app.use("/api/cart", cartRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/orders",orderRoutes);
+app.use("/api/addresses", addressRoutes);
 
 app.get(["/", "/home", "/index"], (req, res) => {
   res.send("BuyIt Backend is Running!");

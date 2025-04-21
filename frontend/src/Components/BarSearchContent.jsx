@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const BarSearchContent = ({ show, suggestions }) => {
+export const BarSearchContent = ({ show, suggestions, onSelectSuggestion }) => {
   if (!show) return null;
 
   return (
@@ -10,7 +10,7 @@ export const BarSearchContent = ({ show, suggestions }) => {
           key={index}
           className="py-2 px-3 border-bottom hover-bg-light"
           style={{ cursor: 'pointer' }}
-          onClick={() => alert(`Search for: ${item}`)}
+          onMouseDown={() => onSelectSuggestion(item)} // <-- use onMouseDown instead of onClick
         >
           {item}
         </div>

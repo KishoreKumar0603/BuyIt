@@ -1,71 +1,59 @@
 import express from "express";
 import Cart from "../models/cart.js";
 import getProductModel from "../models/products.js";
+import { isAuth } from "../middleware/isAuth.js"; // adjust path if needed
+import mongoose from "mongoose";
 
 const router = express.Router();
 
-import mongoose from "mongoose";
 // ✅ Add item to cart
-router.post("/add", async (req, res) => {
-    try {
-      const { userId, productId, category, quantity, price } = req.body; 
-      let cart = await Cart.findOne({ userId });
-  
-      if (!cart) {
-        cart = new Cart({ userId, items: [], totalPrice: 0 });
-      }
-      if (!category) {
-        return res.status(400).json({ error: "Category is required" });
-      }
-  
-      const existingItem = cart.items.find((item) => item.productId.toString() === productId);
-      
-      if (existingItem) {
-        existingItem.quantity += quantity;
-      } else {
-        cart.items.push({ productId, category, quantity });
-      }
-  
-      cart.totalPrice += price * quantity;
-      await cart.save();
-      res.status(200).json(cart);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-});
-  
-
-
-// // ✅ Get User Cart with Product Details
-// router.get("/:userId", async (req, res) => {
-//   try {
-//     const Id = new mongoose.Types.ObjectId(req.params.userId);
-//     console.log("User ID in Cart: "+ Id);
-//     const cart = await Cart.findOne({"userId":Id});
-//     console.log(cart);
-
-//     if (!cart) return res.status(404).json({ message: "Cart not found" });
-
-//     // Dynamically fetch product details for each item
-//     const populatedItems = await Promise.all(
-//       cart.items.map(async (item) => {
-//         const ProductModel = getProductModel(item.category); // Get correct model
-//         const product = await ProductModel.findById(item.productId);
-//         return product ? { ...item.toObject(), product } : null;
-//       })
-//     );
-
-//     cart.items = populatedItems.filter(Boolean); // Remove null items (if any)
-
-//     res.status(200).json(cart);
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
-
-router.get('/:userId', async (req, res) => {
+router.post("/add", isAuth, async (req, res) => {
   try {
-    const cart = await Cart.findOne({ userId: req.params.userId });
+    const userId = req.user._id; // from isAuth
+    const { productId, category, quantity } = req.body;
+
+    let cart = await Cart.findOne({ userId });
+
+    if (!cart) {
+      cart = new Cart({ userId, items: [], totalPrice: 0 });
+    }
+    const Product = getProductModel(category);
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    if (quantity > product.stock) {
+      return res.status(400).json({ error: `Only ${product.stock} in stock` });
+    }
+    const price = product.price;
+    if (!category) {
+      return res.status(400).json({ error: "Category is required" });
+    }
+
+    const existingItem = cart.items.find(
+      (item) => item.productId.toString() === productId
+    );
+
+    if (existingItem) {
+      existingItem.quantity += quantity;
+    } else {
+      cart.items.push({ productId, category, quantity });
+    }
+
+    cart.totalPrice += price * quantity;
+    await cart.save();
+    res.status(200).json(cart);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ✅ Get authenticated user's cart
+router.get("/", isAuth, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const cart = await Cart.findOne({ userId });
 
     if (!cart) {
       return res.status(404).json({ message: "Cart not found" });
@@ -73,13 +61,9 @@ router.get('/:userId', async (req, res) => {
 
     const populatedItems = await Promise.all(
       cart.items.map(async (item) => {
-        const ProductModel = getProductModel(item.category); // Dynamically get model
+        const ProductModel = getProductModel(item.category);
         const product = await ProductModel.findById(item.productId);
-
-        return {
-          ...item.toObject(),
-          product,
-        };
+        return { ...item.toObject(), product };
       })
     );
 
@@ -96,14 +80,17 @@ router.get('/:userId', async (req, res) => {
 });
 
 // ✅ Update cart item quantity
-router.put("/update/:userId", async (req, res) => {
+router.put("/update", isAuth, async (req, res) => {
   try {
+    const userId = req.user._id;
     const { productId, quantity, price } = req.body;
-    const cart = await Cart.findOne({ userId: req.params.userId });
+    const cart = await Cart.findOne({ userId });
 
     if (!cart) return res.status(404).json({ message: "Cart not found" });
 
-    const item = cart.items.find((item) => item.productId.toString() === productId);
+    const item = cart.items.find(
+      (item) => item.productId.toString() === productId
+    );
     if (item) {
       cart.totalPrice += (quantity - item.quantity) * price;
       item.quantity = quantity;
@@ -116,36 +103,41 @@ router.put("/update/:userId", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// patch update
-router.patch('/update/:userId/:itemId', async (req, res) => {
-  const { userId, itemId } = req.params;
+
+// ✅ Patch update by itemId
+router.patch("/update/:itemId", isAuth, async (req, res) => {
+  const userId = req.user._id;
+  const { itemId } = req.params;
   const { quantity } = req.body;
 
   try {
     const cart = await Cart.findOne({ userId });
 
-    if (!cart) return res.status(404).json({ message: 'Cart not found' });
+    if (!cart) return res.status(404).json({ message: "Cart not found" });
 
     const item = cart.items.id(itemId);
-    if (!item) return res.status(404).json({ message: 'Item not found' });
+    if (!item) return res.status(404).json({ message: "Item not found" });
 
     item.quantity = quantity;
     await cart.save();
 
-    res.json({ message: 'Quantity updated', cart });
+    res.json({ message: "Quantity updated", cart });
   } catch (error) {
-    console.error('Update error:', error.message);
-    res.status(500).json({ message: 'Server error' });
+    console.error("Update error:", error.message);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
 // ✅ Remove item from cart
-router.delete("/remove/:userId/:productId", async (req, res) => {
+router.delete("/remove/:productId", isAuth, async (req, res) => {
   try {
-    const cart = await Cart.findOne({ userId: req.params.userId });
+    const userId = req.user._id;
+    const cart = await Cart.findOne({ userId });
     if (!cart) return res.status(404).json({ message: "Cart not found" });
 
-    cart.items = cart.items.filter((item) => item.productId.toString() !== req.params.productId);
+    cart.items = cart.items.filter(
+      (item) => item.productId.toString() !== req.params.productId
+    );
     await cart.save();
     res.status(200).json(cart);
   } catch (err) {
@@ -154,9 +146,10 @@ router.delete("/remove/:userId/:productId", async (req, res) => {
 });
 
 // ✅ Clear cart
-router.delete("/clear/:userId", async (req, res) => {
+router.delete("/clear", isAuth, async (req, res) => {
   try {
-    await Cart.findOneAndDelete({ userId: req.params.userId });
+    const userId = req.user._id;
+    await Cart.findOneAndDelete({ userId });
     res.status(200).json({ message: "Cart cleared" });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -164,3 +157,168 @@ router.delete("/clear/:userId", async (req, res) => {
 });
 
 export default router;
+
+// import express from "express";
+// import Cart from "../models/cart.js";
+// import getProductModel from "../models/products.js";
+
+// const router = express.Router();
+
+// import mongoose from "mongoose";
+// // ✅ Add item to cart
+// router.post("/add", async (req, res) => {
+//     try {
+//       const { userId, productId, category, quantity, price } = req.body; 
+//       let cart = await Cart.findOne({ userId });
+  
+//       if (!cart) {
+//         cart = new Cart({ userId, items: [], totalPrice: 0 });
+//       }
+//       if (!category) {
+//         return res.status(400).json({ error: "Category is required" });
+//       }
+  
+//       const existingItem = cart.items.find((item) => item.productId.toString() === productId);
+      
+//       if (existingItem) {
+//         existingItem.quantity += quantity;
+//       } else {
+//         cart.items.push({ productId, category, quantity });
+//       }
+  
+//       cart.totalPrice += price * quantity;
+//       await cart.save();
+//       res.status(200).json(cart);
+//     } catch (err) {
+//       res.status(500).json({ error: err.message });
+//     }
+// });
+  
+// // // ✅ Get User Cart with Product Details
+// // router.get("/:userId", async (req, res) => {
+// //   try {
+// //     const Id = new mongoose.Types.ObjectId(req.params.userId);
+// //     console.log("User ID in Cart: "+ Id);
+// //     const cart = await Cart.findOne({"userId":Id});
+// //     console.log(cart);
+
+// //     if (!cart) return res.status(404).json({ message: "Cart not found" });
+
+// //     // Dynamically fetch product details for each item
+// //     const populatedItems = await Promise.all(
+// //       cart.items.map(async (item) => {
+// //         const ProductModel = getProductModel(item.category); // Get correct model
+// //         const product = await ProductModel.findById(item.productId);
+// //         return product ? { ...item.toObject(), product } : null;
+// //       })
+// //     );
+
+// //     cart.items = populatedItems.filter(Boolean); // Remove null items (if any)
+
+// //     res.status(200).json(cart);
+// //   } catch (err) {
+// //     res.status(500).json({ error: err.message });
+// //   }
+// // });
+
+// router.get('/:userId', async (req, res) => {
+//   try {
+//     const cart = await Cart.findOne({ userId: req.params.userId });
+
+//     if (!cart) {
+//       return res.status(404).json({ message: "Cart not found" });
+//     }
+
+//     const populatedItems = await Promise.all(
+//       cart.items.map(async (item) => {
+//         const ProductModel = getProductModel(item.category); // Dynamically get model
+//         const product = await ProductModel.findById(item.productId);
+
+//         return {
+//           ...item.toObject(),
+//           product,
+//         };
+//       })
+//     );
+
+//     const responseCart = {
+//       ...cart.toObject(),
+//       items: populatedItems,
+//     };
+
+//     res.json(responseCart);
+//   } catch (err) {
+//     console.error("❌ Error fetching cart:", err.message);
+//     res.status(500).json({ message: "Internal Server Error" });
+//   }
+// });
+
+// // ✅ Update cart item quantity
+// router.put("/update/:userId", async (req, res) => {
+//   try {
+//     const { productId, quantity, price } = req.body;
+//     const cart = await Cart.findOne({ userId: req.params.userId });
+
+//     if (!cart) return res.status(404).json({ message: "Cart not found" });
+
+//     const item = cart.items.find((item) => item.productId.toString() === productId);
+//     if (item) {
+//       cart.totalPrice += (quantity - item.quantity) * price;
+//       item.quantity = quantity;
+//       await cart.save();
+//       res.status(200).json(cart);
+//     } else {
+//       res.status(404).json({ message: "Item not found" });
+//     }
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+// // patch update
+// router.patch('/update/:userId/:itemId', async (req, res) => {
+//   const { userId, itemId } = req.params;
+//   const { quantity } = req.body;
+
+//   try {
+//     const cart = await Cart.findOne({ userId });
+
+//     if (!cart) return res.status(404).json({ message: 'Cart not found' });
+
+//     const item = cart.items.id(itemId);
+//     if (!item) return res.status(404).json({ message: 'Item not found' });
+
+//     item.quantity = quantity;
+//     await cart.save();
+
+//     res.json({ message: 'Quantity updated', cart });
+//   } catch (error) {
+//     console.error('Update error:', error.message);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// // ✅ Remove item from cart
+// router.delete("/remove/:userId/:productId", async (req, res) => {
+//   try {
+//     const cart = await Cart.findOne({ userId: req.params.userId });
+//     if (!cart) return res.status(404).json({ message: "Cart not found" });
+
+//     cart.items = cart.items.filter((item) => item.productId.toString() !== req.params.productId);
+//     await cart.save();
+//     res.status(200).json(cart);
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+// // ✅ Clear cart
+// router.delete("/clear/:userId", async (req, res) => {
+//   try {
+//     await Cart.findOneAndDelete({ userId: req.params.userId });
+//     res.status(200).json({ message: "Cart cleared" });
+//   } catch (err) {
+//     res.status(500).json({ error: err.message });
+//   }
+// });
+
+// export default router;

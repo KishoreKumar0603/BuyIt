@@ -20,21 +20,21 @@ import { Password } from "./Components/profileComponents/Password.jsx";
 import { Settings } from "./Components/profileComponents/Settings.jsx";
 import { RootCart } from "./Components/CartComponents/RootCart.jsx";
 import { Order } from "./Components/Order/Order.jsx";
-import { ProductDetails } from "./Components/Product/ProductDetails.jsx";
-import { ProductList } from "./Components/Product/ProductList.jsx";
 import { RootWishlist } from "./Components/Wishlist/RootWishlist.jsx";
+import HomeRootLayout from "./layout/HomeRootLayout.jsx";
+import { ProductListing } from "./Components/ProductComponents/ProductListing.jsx";
 
 function App() {
   const router = createBrowserRouter(
     createRoutesFromElements(
       <>
         <Route path="/" element={<RootLayout />} >
-          <Route index element= {<Home />} />
+          {/* <Route index element= {<Home />} /> */}
+          <Route index element={<HomeRootLayout />}/>
+          <Route path="products/:category" element={<ProductListing />} />
           <Route path="cart" element={<RootCart /> } />
           <Route path="orders" element={<Order /> } />
           <Route path="wishlist" element={<RootWishlist />} />
-          <Route path="product-detail" element={<ProductDetails />} />
-          <Route path="product-lists" element={<ProductList />} />
           <Route path="profile" element={<ProfileLayout />}>
             <Route index element={<Navigate to="personal" replace />} />
             <Route path="personal" element={<Personal />} />

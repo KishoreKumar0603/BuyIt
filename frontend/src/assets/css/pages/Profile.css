@@ -76,3 +76,43 @@ label{
 .btn{
   border: none !important;
 }
+
+.wishlist-card {
+  height: 400px; /* 👈 fixed height, adjust as needed */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.wishlist-card img {
+  max-height: 150px;
+  object-fit: contain;
+  margin: 0 auto;
+}
+
+.wishlist-card .card-body {
+  overflow: hidden;
+}
+
+
+
+.wishlist-scroll-container {
+  max-height: 100vh; /* Adjust as needed */
+  overflow-y: auto;
+  padding-right: 5px; 
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* Optional: Hide scroll bar for cleaner look (WebKit browsers) */
+.wishlist-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+.wishlist-scroll-container::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+.wishlist-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}

@@ -8,6 +8,7 @@ import "../assets/css/pages/Profile.css";
 const ProfileLayout = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -43,7 +44,7 @@ const ProfileLayout = () => {
 
         {/* Content Area */}
         <div className="col-md-9">
-          <Outlet context={{ user: userData }} />
+          <Outlet context={{ user: userData ,token}} />
         </div>
       </div>
     </div>

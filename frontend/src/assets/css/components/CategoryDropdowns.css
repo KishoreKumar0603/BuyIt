@@ -1,0 +1,13 @@
+.category-container {
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+}
+.category-container::-webkit-scrollbar {
+  display: none; /* Chrome */
+}
+
+.category-item:hover {
+  transform: translateY(-2px);
+  transition: 0.2s ease-in-out;
+  cursor: pointer;
+}

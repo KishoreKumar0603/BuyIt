@@ -5,7 +5,8 @@ import {
     myProfile,
     verifyUser,
     deleteUser,
-    updateUser
+    updateUser,
+    changePass
   } from "../controllers/userController.js";
 import { isAuth } from "../middleware/isAuth.js";
   
@@ -22,5 +23,5 @@ router.post("/verify", verifyUser)
 router.get("/my-profile", isAuth, myProfile);
 router.delete('/delete', isAuth, deleteUser);
 router.patch('/update', isAuth, updateUser);
-
+router.put("/change-password", isAuth,changePass);
 export default router;

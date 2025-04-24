@@ -3,10 +3,22 @@
   transition: 0.3s ease-in-out;
   transform: scale(1.01);
 }
-.product-card{
-    transition: all 0.3s !important;
+.product-card {
+  transition: all 0.3s !important;
 }
 
-.label-radio{
+.label-radio {
   font-size: 15px !important;
+}
+.active > .page-link,
+.page-link.active {
+  z-index: 3;
+  color: var(--bs-pagination-active-color);
+  background-color: #767677;
+  border-color:#767677;
+  color: white !important;
+}
+
+.page-link:focus{
+  box-shadow: 0 0 0 0.25rem rgba(46, 46, 46, 0.25) !important;
 }

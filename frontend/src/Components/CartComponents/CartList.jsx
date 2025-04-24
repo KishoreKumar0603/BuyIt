@@ -1,30 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Button } from "react-bootstrap";
-import { useOutletContext } from "react-router-dom";
+import { Link } from "react-router-dom";
 
-export const Cart = () => {
-  const { token } = useOutletContext(); // make sure token is passed here
-  const [cartItems, setCartItems] = useState([]);
-
-  useEffect(() => {
-    const fetchCart = async () => {
-      try {
-        const res = await fetch(`http://localhost:5000/api/cart`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!res.ok) throw new Error(`Failed to fetch cart: ${res.status}`);
-        const data = await res.json();
-        setCartItems(data.items || []);
-        console.log(data.items);
-      } catch (err) {
-        console.error("❌ Failed to load cart", err.message);
-      }
-    };
-
-    if (token) fetchCart();
-  }, [token]);
+export const CartList = ({ cartItems, setCartItems, setTotalPrice, setIsProductAvail }) => {
+  const token = localStorage.getItem("token");
 
   const handleQuantityChange = async (itemId, change) => {
     const updatedItems = cartItems.map((item) => {
@@ -39,7 +18,7 @@ export const Cart = () => {
     const changedItem = updatedItems.find((item) => item._id === itemId);
 
     try {
-      const res = await fetch(`http://localhost:5000/api/cart/update`, {
+      await fetch(`http://localhost:5000/api/cart/update`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -52,7 +31,11 @@ export const Cart = () => {
         }),
       });
 
-      if (!res.ok) throw new Error("Quantity update failed");
+      const newTotal = updatedItems.reduce(
+        (sum, item) => sum + item.product.price * item.quantity,
+        0
+      );
+      setTotalPrice(newTotal);
     } catch (error) {
       console.error("❌ Error updating quantity:", error.message);
     }
@@ -61,7 +44,7 @@ export const Cart = () => {
   const handleRemove = async (itemId) => {
     const removedItem = cartItems.find((item) => item._id === itemId);
     try {
-      const res = await fetch(
+      await fetch(
         `http://localhost:5000/api/cart/remove/${removedItem.product._id}`,
         {
           method: "DELETE",
@@ -71,28 +54,31 @@ export const Cart = () => {
         }
       );
 
-      if (!res.ok) throw new Error("Failed to delete item");
+      const newItems = cartItems.filter((item) => item._id !== itemId);
+      setCartItems(newItems);
+      setIsProductAvail(newItems.length > 0);
 
-      setCartItems((prevItems) =>
-        prevItems.filter((item) => item._id !== itemId)
+      const newTotal = newItems.reduce(
+        (sum, item) => sum + item.product.price * item.quantity,
+        0
       );
+      setTotalPrice(newTotal);
     } catch (error) {
       console.error("❌ Error removing item:", error.message);
     }
   };
 
   return (
-    <div className="container px-4">
+    <div className="container p-3">
       {cartItems.length === 0 ? (
         <h4>Your cart is empty 😔</h4>
       ) : (
         <div
           className="cart-scroll-container"
           style={{
-            maxHeight: "100vh", // 👈 adjust height as needed
+            maxHeight: "100vh",
             overflowY: "auto",
-            paddingRight: "10px",
-            scrollbarWidth: "none", // Firefox
+            scrollbarWidth: "none",
             msOverflowStyle: "none",
           }}
         >
@@ -114,13 +100,13 @@ export const Cart = () => {
                   <p className="secondary m-0">
                     Brand: {item.product?.brand || "Brand"}
                   </p>
-                  <p className="secondary m-0">
+                  <p className="secondary m-0 p-0">
                     Rating: {item.product?.rating || "N/A"}
                   </p>
-                  <p className="text-muted">
+                  <p className="text-muted mb-0">
                     Stock: {item.product?.stock || 0}
                   </p>
-                  <h4 className="m-0">₹ {item.product?.price || 0}</h4>
+                  <h4 className="mb-3">₹ {item.product?.price || 0}</h4>
                 </div>
                 <div className="col-md-12 mt-2">
                   <div className="row">
@@ -147,7 +133,9 @@ export const Cart = () => {
                       </button>
                     </div>
                     <div className="col-8">
-                      <Button variant="dark">Order</Button>
+                      <Link to={`/products/${item.category}/${item.product?._id}`}>
+                        <Button variant="dark">View</Button>
+                      </Link>
                       <Button
                         variant="dark"
                         className="ms-3"

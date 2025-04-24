@@ -17,3 +17,7 @@
 .secondary{
   color: var(--theme-secondary-text-color) !important;
 }
+
+.btn-dark{
+  border-radius: 5px !important;
+}

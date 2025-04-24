@@ -38,7 +38,7 @@ const ResetPassword = () => {
       if (response.ok) {
         alert("Password reset successfully!");
         localStorage.removeItem("resetToken"); // Clear reset token
-        navigate("/");
+        navigate("/login");
       } else {
         alert(data.message);
       }

@@ -110,41 +110,76 @@ export const getProductsByCategory = async (req, res) => {
 
 export const getProductById = async (req, res) => {
     try {
-        const { id } = req.params;
+        const { category, id } = req.params;
 
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ message: "Invalid product ID format" });
         }
 
-        // 🔍 Step 1: Iterate over all collections to find where the product exists
+        // Check if the category (collection name) exists
         const collections = await mongoose.connection.db.listCollections().toArray();
-        let foundProduct = null;
+        const collectionExists = collections.some(col => col.name === category);
 
-        for (const collection of collections) {
-            const collectionName = collection.name;
-
-            // Dynamically create model for each collection
-            const ProductModel = mongoose.models[collectionName] || 
-                mongoose.model(collectionName, new mongoose.Schema({}, { strict: false }), collectionName);
-
-            // Check if the product exists in this collection
-            const product = await ProductModel.findById(id);
-            if (product) {
-                foundProduct = product;
-                break; // Stop searching once the product is found
-            }
+        if (!collectionExists) {
+            return res.status(404).json({ message: `Category '${category}' not found` });
         }
 
-        if (!foundProduct) {
-            return res.status(404).json({ message: "Product not found in any category" });
+        // Dynamically create model for the given category
+        const ProductModel =
+            mongoose.models[category] ||
+            mongoose.model(category, new mongoose.Schema({}, { strict: false }), category);
+
+        const product = await ProductModel.findById(id);
+        console.log(product);
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
         }
 
-        res.status(200).json(foundProduct);
+        return res.status(200).json(product);
 
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
+
+
+// export const getProductById = async (req, res) => {
+//     try {
+//         const { id } = req.params;
+
+//         if (!mongoose.Types.ObjectId.isValid(id)) {
+//             return res.status(400).json({ message: "Invalid product ID format" });
+//         }
+
+//         // 🔍 Step 1: Iterate over all collections to find where the product exists
+//         const collections = await mongoose.connection.db.listCollections().toArray();
+//         let foundProduct = null;
+
+//         for (const collection of collections) {
+//             const collectionName = collection.name;
+
+//             // Dynamically create model for each collection
+//             const ProductModel = mongoose.models[collectionName] || 
+//                 mongoose.model(collectionName, new mongoose.Schema({}, { strict: false }), collectionName);
+
+//             // Check if the product exists in this collection
+//             const product = await ProductModel.findById(id);
+//             if (product) {
+//                 foundProduct = product;
+//                 break; // Stop searching once the product is found
+//             }
+//         }
+
+//         if (!foundProduct) {
+//             return res.status(404).json({ message: "Product not found in any category" });
+//         }
+
+//         res.status(200).json(foundProduct);
+
+//     } catch (error) {
+//         res.status(500).json({ message: error.message });
+//     }
+// };
 
 export const deleteProduct = async (req, res) => {
     try {

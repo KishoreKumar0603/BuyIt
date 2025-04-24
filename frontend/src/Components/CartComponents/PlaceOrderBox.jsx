@@ -2,9 +2,9 @@ import React from "react";
 
 const PlaceOrderBox = () => {
   return (
-    <div className=" p-3">
+    <div className=" px-3">
         <div className="container box px-4 py-3 d-flex justify-content-between align-items-center">
-            <span>Click Place Order Button to Complete</span>
+            <span>Click Place Order Button to Complete Order</span>
             <button className="btn btn-dark">Place Order</button>
         </div>
     </div>

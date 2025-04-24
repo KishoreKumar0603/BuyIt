@@ -2,7 +2,6 @@ import "./App.css";
 import Login from "./pages/Login.jsx";
 import { BrowserRouter as Router, Route, Routes, createBrowserRouter, createRoutesFromElements, RouterProvider } from "react-router-dom";
 import Signup from "./pages/Signup.jsx";
-import Home from "./pages/Home.jsx";
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import OtpVerification from "./pages/ForgotPassword/OtpVerification";
 import ResetPassword from "./pages/ForgotPassword/ResetPassword";
@@ -23,6 +22,8 @@ import { Order } from "./Components/Order/Order.jsx";
 import { RootWishlist } from "./Components/Wishlist/RootWishlist.jsx";
 import HomeRootLayout from "./layout/HomeRootLayout.jsx";
 import { ProductListing } from "./Components/ProductComponents/ProductListing.jsx";
+import { ProductDetails } from "./Components/ProductComponents/ProductDetails.jsx";
+import { OrderSuccess } from "./Components/CartComponents/OrderSuccess.jsx";
 
 function App() {
   const router = createBrowserRouter(
@@ -32,7 +33,9 @@ function App() {
           {/* <Route index element= {<Home />} /> */}
           <Route index element={<HomeRootLayout />}/>
           <Route path="products/:category" element={<ProductListing />} />
+          <Route path="products/:category/:id" element={<ProductDetails />} />
           <Route path="cart" element={<RootCart /> } />
+          <Route path="cart/success" element={<OrderSuccess /> } />
           <Route path="orders" element={<Order /> } />
           <Route path="wishlist" element={<RootWishlist />} />
           <Route path="profile" element={<ProfileLayout />}>
@@ -45,7 +48,6 @@ function App() {
             <Route path="password" element={<Password />} />
             <Route path="settings" element={<Settings />} />
           </Route>
-
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />

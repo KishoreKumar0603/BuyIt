@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../assets/css/pages/ForgotPassword/OtpVerification.css";
+import axiosInstance from "../../context/axiosInstance";
 
 const ForgotPasswordOtp = () => {
   const [otp, setOtp] = useState(["", "", "", ""]);
@@ -43,20 +44,18 @@ const ForgotPasswordOtp = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/user/forgot/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ otp: otpValue, resetKey }),
-      });
+      const response = await axiosInstance.post(
+        "/api/user/forgot/reset-password",
+        { otp: otpValue, resetKey },
+        { headers: { "Content-Type": "application/json" } }
+      );
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.status === 200) {
         alert("OTP Verified! You can now reset your password.");
-        localStorage.setItem("resetToken", data.resetToken);
+        localStorage.setItem("resetToken", response.data.resetToken);
         navigate("/reset-password");
       } else {
-        alert(data.message || "Invalid OTP. Please try again.");
+        alert(response.data.message || "Invalid OTP. Please try again.");
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);

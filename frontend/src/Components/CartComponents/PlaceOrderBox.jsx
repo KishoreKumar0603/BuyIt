@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "../../context/axiosInstance";
 
 const PlaceOrderBox = ({ cartItems, setCartItems, setTotalPrice, setIsProductAvail }) => {
   const [loading, setLoading] = useState(false);
   const token = localStorage.getItem("token");
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+
   const handlePlaceOrder = async () => {
     if (!cartItems || cartItems.length === 0) {
       alert("Your cart is empty! Please add items before placing an order.");
@@ -14,45 +16,40 @@ const PlaceOrderBox = ({ cartItems, setCartItems, setTotalPrice, setIsProductAva
     setLoading(true);
 
     try {
-      
-      // cartItems.map((item) =>{
-      //   console.log("product :"+item.product);
-      // })
-      const response = await fetch("http://localhost:5000/api/orders/place", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      const response = await axiosInstance.post(
+        "/api/orders/place",
+        {
           products: cartItems.map((item) => ({
             productId: item.product._id,
             category: item.category,
             quantity: item.quantity,
           })),
-        }),
-      });
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      const data = await response.json(); // Get the response data (either success or error)
-
-      if (response.ok) {
-        // Clear the cart and reset relevant states if the order is placed successfully
+      if (response.status === 200 || response.status === 201) {
+        // Clear the cart and reset relevant states
         setCartItems([]);
         setTotalPrice(0);
         setIsProductAvail(false);
 
-        // Show success alert
-        alert(data.message || "Order placed successfully!");
-
-        // Navigate to the order success page
+        alert(response.data.message || "Order placed successfully!");
         navigate("/order-success");
       } else {
-        // Show error alert if response is not OK (order failed)
-        alert(data.error || "Error placing order. Please try again.");
+        alert(response.data.error || "Error placing order. Please try again.");
       }
     } catch (error) {
-      // Show generic error alert if an error occurs during the fetch call
-      alert(error.message || "An unexpected error occurred.");
+      alert(
+        (error.response && error.response.data && error.response.data.error) ||
+          error.message ||
+          "An unexpected error occurred."
+      );
     } finally {
       setLoading(false);
     }

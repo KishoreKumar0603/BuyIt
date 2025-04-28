@@ -27,7 +27,7 @@
   font-size: 1.2rem;
   color: black;
   /* transition: background-color 0.3s, color 0.3s; */
-  transition: all 0.  3s !important;
+  transition: all 0 3s !important;
 }
 
 .sidebar-item:hover {
@@ -38,42 +38,41 @@
   color: rgb(0, 0, 0) !important;
 }
 
-
 .sidebar-item:has(.sidebar-link.active) {
   background: var(--theme-bg-space) !important;
 }
-label{
+label {
   font-size: 1.3rem !important;
 }
-.text-edit{
+.text-edit {
   color: #737373 !important;
   transition: all 0.3s;
   font-size: 1rem;
 }
 
-.text-edit:hover{
+.text-edit:hover {
   color: black !important;
 }
 
-.btn-save{
+.btn-save {
   background: #000;
   color: white;
-  outline: none; 
+  outline: none;
   border: none;
 }
-.btn-save:hover{
+.btn-save:hover {
   background: #2d2d2d;
 }
 
-.card{
+.card {
   --bs-card-border-radius: 0px !important;
 }
-.card-img-center{
+.card-img-center {
   height: 150px !important;
   width: 200px;
   margin: auto;
 }
-.btn{
+.btn {
   border: none !important;
 }
 
@@ -95,12 +94,10 @@ label{
   overflow: hidden;
 }
 
-
-
 .wishlist-scroll-container {
   max-height: 100vh; /* Adjust as needed */
   overflow-y: auto;
-  padding-right: 5px; 
+  padding-right: 5px;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }

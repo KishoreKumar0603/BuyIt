@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../../context/axiosInstance';
 
 export const ProductDetails = () => {
   const { category, id } = useParams();
@@ -10,7 +10,7 @@ export const ProductDetails = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/products/${category}/${id}`);
+        const response = await axiosInstance.get(`/api/products/${category}/${id}`);
         setProduct(response.data);
         console.log(response.data);
       } catch (error) {
@@ -23,10 +23,10 @@ export const ProductDetails = () => {
 
   const addToCart = async () => {
     try {
-      const token = localStorage.getItem("token"); // assuming token is stored in localStorage
+      const token = localStorage.getItem("token");
   
-      await axios.post(
-        "http://localhost:5000/api/cart/add",
+      await axiosInstance.post(
+        "/api/cart/add",
         {
           productId: product._id,
           category,
@@ -34,12 +34,11 @@ export const ProductDetails = () => {
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`, // attach token for auth
+            Authorization: `Bearer ${token}`,
           },
         }
       );
   
-      // update local storage
       const currentCart = JSON.parse(localStorage.getItem("cart")) || [];
       currentCart.push({ ...product, quantity: 1 });
       localStorage.setItem("cart", JSON.stringify(currentCart));
@@ -55,8 +54,8 @@ export const ProductDetails = () => {
     try {
       const token = localStorage.getItem("token");
   
-      await axios.post(
-        'http://localhost:5000/api/orders/place',
+      await axiosInstance.post(
+        '/api/orders/place',
         {
           products: [
             {
@@ -88,7 +87,6 @@ export const ProductDetails = () => {
   }
 
   if (redirectToOrderConfirmation) {
-    // Redirect to order confirmation page
     return <Navigate to="/order-success" />;
   }
 

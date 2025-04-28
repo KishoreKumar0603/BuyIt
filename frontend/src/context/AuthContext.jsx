@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
           setUser({ 
             email: decoded.email, 
             id: decoded._id, 
-            token: token // ✅ Include the token for API requests
+            token: token
           });
         } else {
           localStorage.removeItem("token");

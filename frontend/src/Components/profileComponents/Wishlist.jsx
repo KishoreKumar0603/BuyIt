@@ -1,96 +1,88 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "react-bootstrap";
+import axiosInstance from "../../context/axiosInstance";
 
 export const Wishlist = () => {
   const [wishlist, setWishlist] = useState([]);
 
-  // ✅ Fetch wishlist
   useEffect(() => {
     const fetchWishlist = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:5000/api/wishlist/my-wishlist", {
-          method: "GET",
+        
+        const res = await axiosInstance.get("/api/wishlist/my-wishlist", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-
-        if (!res.ok) throw new Error("Failed to fetch wishlist");
-
-        const data = await res.json();
-        setWishlist(data);
-
-        // Update localStorage after fetching from the server
-        localStorage.setItem("wishlist", JSON.stringify(data));
+  
+        setWishlist(res.data);
+  
+        localStorage.setItem("wishlist", JSON.stringify(res.data));
       } catch (error) {
         console.error("❌ Error fetching wishlist:", error.message);
-
-        // Fallback to localStorage if API fetch fails
+  
         const savedWishlist = localStorage.getItem("wishlist");
         if (savedWishlist) {
           setWishlist(JSON.parse(savedWishlist));
         }
       }
     };
-
+  
     fetchWishlist();
   }, []);
 
-  // ✅ Remove from wishlist
   const removeFromWishlist = async (productId) => {
     try {
-      const res = await fetch("http://localhost:5000/api/wishlist/remove", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({ productId }),
-      });
-
-      if (!res.ok) throw new Error("Failed to remove item");
-
-      setWishlist((prev) => {
-        const updatedWishlist = prev.filter((item) => item._id !== productId);
-        localStorage.setItem("wishlist", JSON.stringify(updatedWishlist)); // Update localStorage
-        return updatedWishlist;
-      });
+      const res = await axiosInstance.post(
+        "/api/wishlist/remove",
+        { productId },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+  
+      if (res.status === 200) {
+        setWishlist((prev) => {
+          const updatedWishlist = prev.filter((item) => item._id !== productId);
+          localStorage.setItem("wishlist", JSON.stringify(updatedWishlist)); 
+          return updatedWishlist;
+        });
+      } else {
+        throw new Error("Failed to remove item");
+      }
     } catch (err) {
       console.error("❌ Error removing from wishlist:", err.message);
     }
   };
 
-  // ✅ Move to Cart and remove from wishlist
   const moveToCart = async (productId, category) => {
     try {
       const token = localStorage.getItem("token");
-
-      // 1️⃣ Add to cart
-      const res = await fetch("http://localhost:5000/api/cart/add", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          productId,
-          category,
-          quantity: 1,
-        }),
-      });
-
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.error || "Failed to add to cart");
+      const resAddToCart = await axiosInstance.post(
+        "/api/cart/add",
+        { productId, category, quantity: 1 },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+  
+      if (resAddToCart.status === 200) {
+        await removeFromWishlist(productId);
+      } else {
+        throw new Error("Failed to add to cart");
       }
-
-      // 2️⃣ Remove from wishlist
-      await removeFromWishlist(productId);
     } catch (err) {
       console.error("❌ Error moving to cart:", err.message);
     }
   };
+  
 
   return (
     <div className="container min-vh-100">

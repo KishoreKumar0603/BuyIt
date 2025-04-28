@@ -6,7 +6,7 @@ const CustomAlert = ({ message, show, onClose }) => {
     if (show) {
       const timer = setTimeout(() => {
         onClose();
-      }, 3000); // Auto-close after 3 seconds
+      }, 3000);
       return () => clearTimeout(timer);
     }
   }, [show, onClose]);

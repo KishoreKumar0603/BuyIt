@@ -10,7 +10,7 @@ export const BarSearchContent = ({ show, suggestions, onSelectSuggestion }) => {
           key={index}
           className="py-2 px-3 border-bottom hover-bg-light"
           style={{ cursor: 'pointer' }}
-          onMouseDown={() => onSelectSuggestion(item)} // <-- use onMouseDown instead of onClick
+          onMouseDown={() => onSelectSuggestion(item)}
         >
           {item}
         </div>

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useOutletContext } from "react-router-dom";
+import axiosInstance from "../../context/axiosInstance";
 export const Personal = () => {
   const {user} = useOutletContext();
   const [isEditing, setIsEditing] = useState({
@@ -28,30 +29,34 @@ export const Personal = () => {
     setUserData({ ...userData, [e.target.name]: e.target.value });
   };
 
-  const handleSave = async (field) => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/api/user/update`, {
-        method: "PATCH",
+ const handleSave = async (field) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    // Sending PATCH request with axios
+    const response = await axiosInstance.patch(
+      `/api/user/update`, 
+      { [field]: userData[field] }, 
+      {
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify({ [field]: userData[field] }),
-      });
-      console.log("response Fetched....");
-  
-      if (!response.ok) throw new Error("Update failed");
-  
-      const data = await response.json();
-      console.log("User updated:", data);
-  
-      setIsEditing({ ...isEditing, [field]: false });
-    } catch (err) {
-      console.error(err);
-      alert("Something went wrong. Try again.");
-    }
-  };
+      }
+    );
+
+    console.log("response Fetched....");
+
+    if (response.status !== 200) throw new Error("Update failed");
+
+    console.log("User updated:", response.data);
+
+    setIsEditing({ ...isEditing, [field]: false });
+  } catch (err) {
+    console.error(err);
+    alert("Something went wrong. Try again.");
+  }
+};
   
 
   return (

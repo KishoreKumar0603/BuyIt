@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import axiosInstance from "../../context/axiosInstance";
 
 export const Password = () => {
   const [formData, setFormData] = useState({
@@ -22,8 +22,8 @@ export const Password = () => {
     }
 
     try {
-      const res = await axios.put(
-        "http://localhost:5000/api/user/change-password",
+      const res = await axiosInstance.put(
+        "/api/user/change-password",
         { oldPassword, newPassword },
         {
           headers: {

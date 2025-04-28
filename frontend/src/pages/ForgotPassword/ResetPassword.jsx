@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../../assets/css/pages/ForgotPassword/ResetPassword.css";
+import axiosInstance from "../../context/axiosInstance";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -27,20 +28,18 @@ const ResetPassword = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/user/forgot/change-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ resetToken, password, confirmPassword }),
-      });
+      const response = await axiosInstance.post(
+        `/api/user/forgot/change-password`,
+        { resetToken, password, confirmPassword },
+        { headers: { "Content-Type": "application/json" } }
+      );
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.status === 200) {
         alert("Password reset successfully!");
         localStorage.removeItem("resetToken"); // Clear reset token
         navigate("/login");
       } else {
-        alert(data.message);
+        alert(response.data.message);
       }
     } catch (error) {
       console.error("Error resetting password:", error);

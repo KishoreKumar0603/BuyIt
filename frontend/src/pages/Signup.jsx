@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios"; // Import axios for API calls
+import axiosInstance from "../context/axiosInstance";
 import "../assets/css/pages/Signup.css";
 
 const Signup = () => {
@@ -13,14 +13,10 @@ const Signup = () => {
   });
 
   const [message, setMessage] = useState("");
-  const navigate = useNavigate(); // To redirect after successful signup
-
-  // Handle input changes
+  const navigate = useNavigate();
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
   
@@ -30,7 +26,7 @@ const Signup = () => {
     }
   
     try {
-      const response = await axios.post("http://localhost:5000/api/user/register", {
+      const response = await axiosInstance.post("/api/user/register", {
         name: formData.name,
         phone: formData.phone,
         email: formData.email,
@@ -40,11 +36,10 @@ const Signup = () => {
       setMessage(response.data.message);
   
       if (response.status === 200) {
-        // Store activationKey in local storage
         localStorage.setItem("activationKey", response.data.activationKey);
   
         alert("OTP sent to your email. Verify your account!");
-        navigate("/otp-verification"); // Redirect to OTP verification page
+        navigate("/otp-verification");
       }
     } catch (error) {
       setMessage(error.response?.data?.message || "Something went wrong!");

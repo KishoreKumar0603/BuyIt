@@ -2,15 +2,12 @@ import express from "express";
 import mongoose from "mongoose";
 import Order from "../models/orders.js";
 import { isAuth } from "../middleware/isAuth.js";
-import sendMail from "../middleware/sendMail.js";
-import jwt from 'jsonwebtoken';
 import dotenv from "dotenv";
 const router = express.Router();
 import Cart from "../models/cart.js";
 
 
 dotenv.config();
-
 router.post("/place", isAuth, async (req, res) => {
   try {
     const userId = req.user._id;
@@ -27,44 +24,52 @@ router.post("/place", isAuth, async (req, res) => {
     for (const item of products) {
       const { productId, category, quantity } = item;
 
+      // Dynamically load model
       if (!mongoose.connection.models[category]) {
         const dynamicSchema = new mongoose.Schema({}, { strict: false });
         mongoose.model(category, dynamicSchema, category);
       }
-
       const ProductModel = mongoose.model(category);
-      const product = await ProductModel.findById(productId);
 
+      const product = await ProductModel.findById(productId);
       if (!product) {
         return res.status(404).json({ error: `Product not found in ${category}` });
       }
 
-      if (product.quantity < quantity) {
-        return res.status(400).json({ error: `Only ${product.quantity} items left for ${product.title || 'this product'}` });
-      }
+      // ✅ Atomic Update (Conditional Quantity Check + Decrement)
+      const updateResult = await ProductModel.updateOne(
+        { _id: productId, stock: { $gte: quantity } },
+        { $inc: { stock: -quantity } }
+      );
 
-      // Deduct the quantity
-      product.quantity -= quantity;
-      await product.save();
+      if (updateResult.modifiedCount === 0) {
+        return res.status(400).json({
+          error: `Insufficient stock for ${product.title || "this product"}. Only ${product.quantity} left.`,
+        });
+      }
 
       const price = product.price * quantity;
       totalAmount += price;
-      orderItems.push({ productId, category, quantity, price });
+
+      orderItems.push({
+        productId,
+        category,
+        quantity,
+        price,
+        title: product.title,
+        image_url: product.image_url,
+      });
     }
 
-    // Check if the user already has an existing order
+    // Save Order
     let existingOrder = await Order.findOne({ userId });
-
     if (existingOrder) {
-      // Append new items and update total
       existingOrder.products.push(...orderItems);
       existingOrder.totalAmount += totalAmount;
       existingOrder.updatedAt = new Date();
       await existingOrder.save();
-
       res.status(200).json({ message: "Order updated successfully!" });
     } else {
-      // Create new order
       const newOrder = new Order({
         userId,
         email,
@@ -75,35 +80,19 @@ router.post("/place", isAuth, async (req, res) => {
         createdAt: new Date(),
         updatedAt: new Date(),
       });
-
       await newOrder.save();
       res.status(200).json({ message: "Order placed successfully!" });
     }
 
-    // Clear the user's cart after placing the order
+    // Clear cart after successful order
     await Cart.deleteMany({ userId });
 
   } catch (error) {
-    console.error("Order Placement Error:", error);
-    res.status(500).json({ error: error.message });
+    console.error("❌ Order Placement Error:", error);
+    res.status(500).json({ error: error.message || "Something went wrong while placing order." });
   }
 });
 
-// // ✅ Get User Orders
-// router.get("/my-orders", isAuth, async (req, res) => {
-//   try {
-//     const userId = req.user._id;
-//     const orders = await Order.find({ userId }).populate("products.productId");
-
-//     if (!orders || orders.length === 0) {
-//       return res.status(404).json({ message: "No orders found" });
-//     }
-
-//     res.status(200).json(orders);
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// });
 
 
 router.get("/my-orders", isAuth, async (req, res) => {

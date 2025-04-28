@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
-import "../assets/css/pages/Login.css"; // Custom CSS
+import "../assets/css/pages/Login.css";
+import axiosInstance from "../context/axiosInstance";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -13,16 +13,15 @@ const Login = () => {
     e.preventDefault();
     console.log("Email : " + email + " pass : " + password);
     try {
-      const res = await axios.post("http://localhost:5000/api/user/login", {
+      const res = await axiosInstance.post("/api/user/login", {
         email,
         password,
       });
 
       if (res.data.token) {
-        // Save token in localStorage
         localStorage.setItem("token", res.data.token);
         alert(res.data.message);
-        navigate("/"); // Navigate to dashboard/home
+        navigate("/");
       } else {
         setError(res.data.message || "Something went wrong");
       }

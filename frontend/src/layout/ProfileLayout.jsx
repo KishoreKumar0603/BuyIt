@@ -2,8 +2,8 @@ import { Outlet } from "react-router-dom";
 import { Sidebar } from "../Components/profileComponents/Sidebar";
 import { UserGreeting } from "../Components/profileComponents/UserGreeting";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import "../assets/css/pages/Profile.css";
+import axiosInstance from "../context/axiosInstance";
 
 const ProfileLayout = () => {
   const [userData, setUserData] = useState(null);
@@ -15,7 +15,7 @@ const ProfileLayout = () => {
       try {
         const token = localStorage.getItem("token");
 
-        const res = await axios.get("http://localhost:5000/api/user/my-profile", {
+        const res = await axiosInstance.get("/api/user/my-profile", {
           headers: {
             Authorization: `Bearer ${token}`,
           },

@@ -1,6 +1,6 @@
 // src/context/CartContext.js
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { SlControlStart } from "react-icons/sl";
+import axiosInstance from "./axiosInstance";
 
 const CartContext = createContext();
 
@@ -14,18 +14,14 @@ export const CartProvider = ({ children }) => {
 
   const fetchCart = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/cart`, {
+      const res = await axiosInstance.get("http://localhost:5000/api/cart", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (!res.ok) throw new Error(`Failed to fetch cart: ${res.status}`);
-      const data = await res.json();
+
+      const data = res.data;
       const items = data.items || [];
-      // console.log("Items");
-      // items.map((item) =>{
-      //   console.log(item);
-      // });
       setCartItems(items);
       setIsProductAvail(items.length > 0);
 

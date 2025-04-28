@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../assets/css/pages/ForgotPassword/OtpVerification.css";
+import axiosInstance from "../../context/axiosInstance";
 
 const OtpVerification = () => {
   const [otp, setOtp] = useState(["", "", "", ""]);
@@ -44,20 +45,18 @@ const OtpVerification = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:5000/api/user/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ otp: otpValue, activationKey }),
-      });
+      const response = await axiosInstance.post(
+        `/api/user/verify`,
+        { otp: otpValue, activationKey },
+        { headers: { "Content-Type": "application/json" } }
+      );
 
-      const data = await response.json();
-
-      if (response.ok) {
+      if (response.status === 200) {
         alert("Account Created Successfully");
         localStorage.removeItem("activationKey");
         navigate("/login");
       } else {
-        alert(data.message);
+        alert(response.data.message);
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);

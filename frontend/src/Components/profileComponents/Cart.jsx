@@ -1,23 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "react-bootstrap";
 import { useOutletContext } from "react-router-dom";
+import axiosInstance from "../../context/axiosInstance";
 
 export const Cart = () => {
-  const { token } = useOutletContext(); // make sure token is passed here
+  const { token } = useOutletContext();
   const [cartItems, setCartItems] = useState([]);
 
   useEffect(() => {
     const fetchCart = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/cart`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (!res.ok) throw new Error(`Failed to fetch cart: ${res.status}`);
-        const data = await res.json();
-        setCartItems(data.items || []);
-        console.log(data.items);
+        const response = await axiosInstance.get(
+          `/api/cart`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setCartItems(response.data.items || []);
+        console.log(response.data.items);
       } catch (err) {
         console.error("❌ Failed to load cart", err.message);
       }
@@ -39,20 +41,22 @@ export const Cart = () => {
     const changedItem = updatedItems.find((item) => item._id === itemId);
 
     try {
-      const res = await fetch(`http://localhost:5000/api/cart/update`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      const response = await axiosInstance.put(
+        `/api/cart/update`,
+        {
           productId: changedItem.product._id,
           quantity: changedItem.quantity,
           price: changedItem.product.price,
-        }),
-      });
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      if (!res.ok) throw new Error("Quantity update failed");
+      if (response.status !== 200) throw new Error("Quantity update failed");
     } catch (error) {
       console.error("❌ Error updating quantity:", error.message);
     }
@@ -61,17 +65,16 @@ export const Cart = () => {
   const handleRemove = async (itemId) => {
     const removedItem = cartItems.find((item) => item._id === itemId);
     try {
-      const res = await fetch(
-        `http://localhost:5000/api/cart/remove/${removedItem.product._id}`,
+      const response = await axiosInstance.delete(
+        `api/cart/remove/${removedItem.product._id}`,
         {
-          method: "DELETE",
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
 
-      if (!res.ok) throw new Error("Failed to delete item");
+      if (response.status !== 200) throw new Error("Failed to delete item");
 
       setCartItems((prevItems) =>
         prevItems.filter((item) => item._id !== itemId)
@@ -89,10 +92,10 @@ export const Cart = () => {
         <div
           className="cart-scroll-container"
           style={{
-            maxHeight: "100vh", // 👈 adjust height as needed
+            maxHeight: "100vh",
             overflowY: "auto",
             paddingRight: "10px",
-            scrollbarWidth: "none", // Firefox
+            scrollbarWidth: "none",
             msOverflowStyle: "none",
           }}
         >

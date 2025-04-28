@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import axiosInstance from "../../context/axiosInstance";
 
 export const Address = () => {
   const [addresses, setAddresses] = useState([]);
@@ -12,7 +12,7 @@ export const Address = () => {
   useEffect(() => {
     const fetchAddresses = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/addresses", {
+        const res = await axiosInstance.get("/api/addresses", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -51,8 +51,8 @@ export const Address = () => {
 
     try {
       if (editMode) {
-        const res = await axios.put(
-          `http://localhost:5000/api/addresses/${editedAddress._id}`,
+        const res = await axiosInstance.put(
+          `/api/addresses/${editedAddress._id}`,
           editedAddress,
           {
             headers: {
@@ -65,8 +65,8 @@ export const Address = () => {
         );
         setEditMode(false);
       } else if (addMode) {
-        const res = await axios.post(
-          "http://localhost:5000/api/addresses",
+        const res = await axiosInstance.post(
+          "/api/addresses",
           editedAddress,
           {
             headers: {
@@ -84,7 +84,7 @@ export const Address = () => {
 
   const handleRemove = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/addresses/${id}`, {
+      await axiosInstance.delete(`/api/addresses/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

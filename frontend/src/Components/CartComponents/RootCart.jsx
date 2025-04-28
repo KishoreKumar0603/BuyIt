@@ -16,7 +16,7 @@ export const RootCart = () => {
   } = useCart();
 
   useEffect(() => {
-    fetchCart(); // Fetch cart from context
+    fetchCart();
   }, []);
 
   cartItems.map((item) =>{

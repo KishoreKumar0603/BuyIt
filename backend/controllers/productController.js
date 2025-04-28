@@ -130,7 +130,7 @@ export const getProductById = async (req, res) => {
             mongoose.model(category, new mongoose.Schema({}, { strict: false }), category);
 
         const product = await ProductModel.findById(id);
-        console.log(product);
+        // console.log(product);
         if (!product) {
             return res.status(404).json({ message: "Product not found" });
         }

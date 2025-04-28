@@ -206,7 +206,7 @@ export const ProductListing = () => {
                       <button
                         className="btn btn-sm"
                         onClick={(e) => {
-                          e.preventDefault(); // Prevent navigation when clicking wishlist
+                          e.preventDefault();
                           toggleWishlist(product._id, category);
                         }}
                         style={{ fontSize: "20px", color: "black" }}

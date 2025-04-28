@@ -4,11 +4,11 @@ import { Link } from 'react-router-dom';
 import "../../assets/css/components/CategoryDropdowns.css";
 
 const categories = [
-  { label: 'Fashions', img: '/images/DropDowns/Fashion.png' },
-  { label: 'Phones', img: '/images/DropDowns/phones.png' },
-  { label: 'Appliances', img: '/images/DropDowns/Appliances.png' },
-  { label: 'Kitchen', img: '/images/DropDowns/Kitchen.png' },
-  { label: 'Toys', img: '/images/DropDowns/Toys.png' },
+  { label: 'Fashions', img: 'https://res.cloudinary.com/dljbnzwmr/image/upload/v1745817485/Fashion_z5hrlw.png', collection:"fashions"},
+  { label: 'Phones', img: 'https://res.cloudinary.com/dljbnzwmr/image/upload/v1745817484/phones_hmy4tv.png', collection:"mobiles" },
+  { label: 'Appliances', img: 'https://res.cloudinary.com/dljbnzwmr/image/upload/v1745817484/Appliances_gllqra.png', collection:"appliances" },
+  { label: 'Kitchen', img: 'https://res.cloudinary.com/dljbnzwmr/image/upload/v1745817483/Kitchen_nwmpsl.png', collection:"kitchens" },
+  { label: 'Toys', img: 'https://res.cloudinary.com/dljbnzwmr/image/upload/v1745817485/Toys_qzuir4.png', collection:"toys" },
 ];
 
 const CategoryDropdowns = () => {
@@ -16,7 +16,7 @@ const CategoryDropdowns = () => {
     <div className="category-container box py-3 d-flex justify-content-around align-items-center">
       {categories.map((cat, index) => (
         <Link
-          to={`/products/laptops`}
+          to={`/products/${cat.collection}`}
           key={index}
           className="category-item text-center px-3 text-decoration-none text-dark"
         >

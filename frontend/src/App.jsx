@@ -30,12 +30,11 @@ function App() {
     createRoutesFromElements(
       <>
         <Route path="/" element={<RootLayout />} >
-          {/* <Route index element= {<Home />} /> */}
           <Route index element={<HomeRootLayout />}/>
           <Route path="products/:category" element={<ProductListing />} />
           <Route path="products/:category/:id" element={<ProductDetails />} />
           <Route path="cart" element={<RootCart /> } />
-          <Route path="cart/success" element={<OrderSuccess /> } />
+          <Route path="order-success" element={<OrderSuccess /> } />
           <Route path="orders" element={<Order /> } />
           <Route path="wishlist" element={<RootWishlist />} />
           <Route path="profile" element={<ProfileLayout />}>

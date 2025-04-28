@@ -1,11 +1,6 @@
-import { useOutletContext } from "react-router-dom";
-import UserProfile from "../../assets/images/userProfile.png";
-
 export const UserGreeting = ({ user }) => {
-  //   const { user } = useOutletContext();
-//   const UserProfile = "url from cloudinary"
 
-  const profilePic = user?.profileImage || UserProfile;
+  const profilePic = "https://res.cloudinary.com/dljbnzwmr/image/upload/v1745817482/userProfile_gsufq3.png";
   const userName = user?.name || "User";
 
   return (

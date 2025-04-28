@@ -1,5 +1,6 @@
 // src/context/CartContext.js
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { SlControlStart } from "react-icons/sl";
 
 const CartContext = createContext();
 
@@ -21,6 +22,10 @@ export const CartProvider = ({ children }) => {
       if (!res.ok) throw new Error(`Failed to fetch cart: ${res.status}`);
       const data = await res.json();
       const items = data.items || [];
+      // console.log("Items");
+      // items.map((item) =>{
+      //   console.log(item);
+      // });
       setCartItems(items);
       setIsProductAvail(items.length > 0);
 

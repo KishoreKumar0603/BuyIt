@@ -56,7 +56,12 @@ router.get("/", isAuth, async (req, res) => {
     const cart = await Cart.findOne({ userId });
 
     if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
+      return res.json({
+        userId,
+        items: [],
+        total: 0,
+        message: "Cart is empty",
+      });
     }
 
     const populatedItems = await Promise.all(

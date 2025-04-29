@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import PlaceOrderBox from "./PlaceOrderBox";
 import PriceDetails from "./PriceDetails";
 import { CartList } from "./CartList";
-import { useCart } from "../../context/cartContext";
+import { useCart } from "../../context/CartContext";
 
 export const RootCart = () => {
   const {

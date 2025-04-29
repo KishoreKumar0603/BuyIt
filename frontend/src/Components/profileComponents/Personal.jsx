@@ -3,6 +3,7 @@ import { Button, Form } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useOutletContext } from "react-router-dom";
 import axiosInstance from "../../context/axiosInstance";
+import { useAlert } from "../../context/AlertContext";
 export const Personal = () => {
   const {user} = useOutletContext();
   const [isEditing, setIsEditing] = useState({
@@ -20,6 +21,8 @@ export const Personal = () => {
     email: user.email,
     mobile: user.phone,
   });
+
+  const {triggerAlert} =  useAlert();
 
   const handleEdit = (field) => {
     setIsEditing({ ...isEditing, [field]: true });
@@ -54,7 +57,8 @@ export const Personal = () => {
     setIsEditing({ ...isEditing, [field]: false });
   } catch (err) {
     console.error(err);
-    alert("Something went wrong. Try again.");
+    // alert("Something went wrong. Try again.");
+    triggerAlert("Something went wrong. Try again.");
   }
 };
   

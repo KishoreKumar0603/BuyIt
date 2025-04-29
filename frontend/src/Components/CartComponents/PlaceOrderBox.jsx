@@ -1,15 +1,18 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../../context/axiosInstance";
+import { useAlert } from "../../context/AlertContext";
 
 const PlaceOrderBox = ({ cartItems, setCartItems, setTotalPrice, setIsProductAvail }) => {
   const [loading, setLoading] = useState(false);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
+  const {triggerAlert} = useAlert();
 
   const handlePlaceOrder = async () => {
     if (!cartItems || cartItems.length === 0) {
-      alert("Your cart is empty! Please add items before placing an order.");
+      // alert("Your cart is empty! Please add items before placing an order.");
+      triggerAlert("Your cart is empty! Please add items before placing an order.")
       return;
     }
 
@@ -39,16 +42,17 @@ const PlaceOrderBox = ({ cartItems, setCartItems, setTotalPrice, setIsProductAva
         setTotalPrice(0);
         setIsProductAvail(false);
 
-        alert(response.data.message || "Order placed successfully!");
+        // alert(response.data.message || "Order placed successfully!");
+        triggerAlertlert(response.data.message || "Order placed successfully!");
         navigate("/order-success");
       } else {
-        alert(response.data.error || "Error placing order. Please try again.");
+        // alert(response.data.error || "Error placing order. Please try again.");
+        triggerAlert(response.data.error || "Error placing order. Please try again.");
       }
     } catch (error) {
-      alert(
-        (error.response && error.response.data && error.response.data.error) ||
-          error.message ||
-          "An unexpected error occurred."
+      // alert((error.response && error.response.data && error.response.data.error) || error.message ||"An unexpected error occurred."
+      // );
+      triggerAlert((error.response && error.response.data && error.response.data.error) || error.message ||"An unexpected error occurred."
       );
     } finally {
       setLoading(false);

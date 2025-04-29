@@ -24,6 +24,8 @@ import HomeRootLayout from "./layout/HomeRootLayout.jsx";
 import { ProductListing } from "./Components/ProductComponents/ProductListing.jsx";
 import { ProductDetails } from "./Components/ProductComponents/ProductDetails.jsx";
 import { OrderSuccess } from "./Components/CartComponents/OrderSuccess.jsx";
+import { useAlert } from "./context/AlertContext.jsx";
+import Alert from "./Components/Alert.jsx";
 
 function App() {
   const router = createBrowserRouter(
@@ -55,11 +57,30 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/otp-verify" element={<Otp />} />
         <Route path="*" element={<NotFound />} />
+        
       </>
     )
   )
 
-  return <RouterProvider router={router} ></RouterProvider>
+  return(
+    <>
+   <RouterProvider router={router} />
+   <CustomAlertWrapper />
+    </>
+  );
 }
+
+
+const CustomAlertWrapper = () => {
+  const { alertMessage, showAlert, closeAlert } = useAlert();
+
+  return (
+    <Alert
+      message={alertMessage}
+      show={showAlert}
+      onClose={closeAlert}
+    />
+  );
+};
 
 export default App;

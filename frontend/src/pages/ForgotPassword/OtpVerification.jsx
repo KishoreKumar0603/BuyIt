@@ -3,10 +3,13 @@ import { useNavigate } from "react-router-dom";
 import "../../assets/css/pages/ForgotPassword/OtpVerification.css";
 import axiosInstance from "../../context/axiosInstance";
 
+import { useAlert } from "../../context/AlertContext";
+
 const OtpVerification = () => {
   const [otp, setOtp] = useState(["", "", "", ""]);
   const inputRefs = useRef([]);
   const navigate = useNavigate();
+  const {triggerAlert} = useAlert();
 
   const activationKey = localStorage.getItem("activationKey");
 
@@ -34,13 +37,15 @@ const OtpVerification = () => {
 
   const handleVerifyOtp = async () => {
     if (!activationKey) {
-      alert("Activation key missing. Please register again.");
+      // alert("Activation key missing. Please register again.");
+      triggerAlert("Activation key missing. Please register again.");
       return;
     }
 
     const otpValue = otp.join("").trim();
     if (otpValue.length !== 4) {
-      alert("Please enter a 4-digit OTP.");
+      triggerAlert("Please enter a 4-digit OTP.");
+      // alert("Please enter a 4-digit OTP.");
       return;
     }
 
@@ -52,15 +57,18 @@ const OtpVerification = () => {
       );
 
       if (response.status === 200) {
-        alert("Account Created Successfully");
+        triggerAlert("Account Created Successfully");
+        // alert("Account Created Successfully");
         localStorage.removeItem("activationKey");
         navigate("/login");
       } else {
-        alert(response.data.message);
+        triggerAlert(response.data.message);
+        // alert(response.data.message);
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
-      alert("Something went wrong. Please try again.");
+      triggerAlert("Something went wrong. Please try again.");
+      // alert("Something went wrong. Please try again.");
     }
   };
 

@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import "../../assets/css/pages/ForgotPassword/ResetPassword.css";
 import axiosInstance from "../../context/axiosInstance";
 
+import { useAlert } from "../../context/AlertContext";
+
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -10,20 +12,24 @@ const ResetPassword = () => {
   const location = useLocation();
   const { username } = location.state || {};
   const resetToken = localStorage.getItem("resetToken");
+  const {triggerAlert} = useAlert();
 
   const handleResetPassword = async () => {
     if (!resetToken) {
-      alert("Reset token is missing. Please try again.");
+      triggerAlert("Reset token is missing. Please try again.");
+      // alert("Reset token is missing. Please try again.");
       return;
     }
 
     if (password.length < 6) {
-      alert("Password must be at least 6 characters long.");
+      triggerAlert("Password must be at least 6 characters long.");
+      // alert("Password must be at least 6 characters long.");
       return;
     }
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      triggerAlert("Passwords do not match!");
+      // alert("Passwords do not match!");
       return;
     }
 
@@ -35,15 +41,18 @@ const ResetPassword = () => {
       );
 
       if (response.status === 200) {
-        alert("Password reset successfully!");
+        triggerAlert("Password reset successfully!");
+        // alert("Password reset successfully!");
         localStorage.removeItem("resetToken"); // Clear reset token
         navigate("/login");
       } else {
-        alert(response.data.message);
+        triggerAlert(response.data.message);
+        // alert(response.data.message);
       }
     } catch (error) {
       console.error("Error resetting password:", error);
-      alert("Something went wrong. Please try again.");
+      triggerAlert("Something went wrong. Please try again.");
+      // alert("Something went wrong. Please try again.");
     }
   };
 

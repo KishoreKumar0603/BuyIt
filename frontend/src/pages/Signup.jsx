@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../context/axiosInstance";
 import "../assets/css/pages/Signup.css";
-
+import {useAlert} from "../context/AlertContext"
 const Signup = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -11,6 +11,7 @@ const Signup = () => {
     password: "",
     confirmPassword: "",
   });
+  const {triggerAlert} = useAlert();
 
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
@@ -38,7 +39,8 @@ const Signup = () => {
       if (response.status === 200) {
         localStorage.setItem("activationKey", response.data.activationKey);
   
-        alert("OTP sent to your email. Verify your account!");
+        triggerAlert("OTP sent to your email. Verify your account!");
+        // alert("OTP sent to your email. Verify your account!");
         navigate("/otp-verification");
       }
     } catch (error) {

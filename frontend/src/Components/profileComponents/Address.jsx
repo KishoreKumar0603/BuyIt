@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axiosInstance from "../../context/axiosInstance";
+import { useAlert } from "../../context/AlertContext";
 
 export const Address = () => {
   const [addresses, setAddresses] = useState([]);
@@ -8,6 +9,7 @@ export const Address = () => {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [editedAddress, setEditedAddress] = useState({ name: "", phone: "", address: "" });
   const token = localStorage.getItem("token");
+  const {triggerAlert} = useAlert();
 
   useEffect(() => {
     const fetchAddresses = async () => {
@@ -45,7 +47,8 @@ export const Address = () => {
       !editedAddress.phone.trim() ||
       !editedAddress.address.trim()
     ) {
-      alert("Please fill in all fields before saving.");
+      // alert("Please fill in all fields before saving.");
+      triggerAlert("Please fill in all fields before saving.");
       return;
     }
 

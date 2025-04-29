@@ -6,6 +6,7 @@ import "../../assets/css/components/ProductListing.css";
 import { PiHeartDuotone, PiHeartStraightFill } from "react-icons/pi";
 
 import axiosInstance from "../../context/axiosInstance";
+
 export const ProductListing = () => {
   const { category } = useParams();
   const { user } = useAuth();
@@ -23,6 +24,7 @@ export const ProductListing = () => {
     35000, 40000, 45000, 50000, 55000, 60000, 65000, 70000, 75000,
     80000, 85000, 90000, 95000, 100000,
   ];
+
   useEffect(() => {
     if (category) {
       axiosInstance
@@ -36,6 +38,7 @@ export const ProductListing = () => {
         });
     }
   }, [category]);
+
   useEffect(() => {
     const fetchWishlist = () => {
       const storedWishlist = localStorage.getItem("wishlist");
@@ -54,7 +57,7 @@ export const ProductListing = () => {
           .catch((err) => console.error("Wishlist fetch error:", err));
       }
     };
-    
+
     fetchWishlist();
   }, [user, category]);
 
@@ -114,7 +117,6 @@ export const ProductListing = () => {
           config
         );
         const updatedWishlist = wishlist.filter((id) => id !== productId);
-
         setWishlist(updatedWishlist);
         localStorage.setItem("wishlist", JSON.stringify(updatedWishlist));
         toast.success("Removed from wishlist");
@@ -125,7 +127,6 @@ export const ProductListing = () => {
           config
         );
         const updatedWishlist = [...wishlist, productId];
-
         setWishlist(updatedWishlist);
         localStorage.setItem("wishlist", JSON.stringify(updatedWishlist));
         toast.success("Added to wishlist");
@@ -190,46 +191,78 @@ export const ProductListing = () => {
 
       <div className="flex-grow-1">
         {currentProducts.length > 0 ? (
-          currentProducts.map((product) => (
-            <Link to={`/products/${category}/${product._id}`} key={product._id} className="text-decoration-none">
-              <div className="product-card bg-white p-4 border d-flex align-items-start position-relative mb-3">
-                <div className="row g-0 w-100">
-                  <div className="col-2 d-flex justify-content-center align-items-center" style={{ minWidth: "120px" }}>
-                    <img
-                      src={product.image_url}
-                      alt={product.title}
-                      className="img-fluid"
-                      style={{ width: "120px", height: "100%", objectFit: "contain" }}
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="col-10">
-                    <div className="d-flex justify-content-between">
-                      <h5>{truncateText(product.title, 90)}</h5>
-                      <button
-                        className="btn btn-sm"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          toggleWishlist(product._id, category);
-                        }}
-                        style={{ fontSize: "20px", color: "black" }}
-                      >
-                        {wishlist.includes(product._id) ? (
-                          <PiHeartStraightFill />
-                        ) : (
-                          <PiHeartDuotone />
-                        )}
-                      </button>
+          <>
+            {currentProducts.map((product) => (
+              <Link to={`/products/${category}/${product._id}`} key={product._id} className="text-decoration-none">
+                <div className="product-card bg-white p-4 border d-flex align-items-start position-relative mb-3">
+                  <div className="row g-0 w-100">
+                    <div className="col-2 d-flex justify-content-center align-items-center" style={{ minWidth: "120px" }}>
+                      <img
+                        src={product.image_url}
+                        alt={product.title}
+                        className="img-fluid"
+                        style={{ width: "120px", height: "130px", objectFit: "contain" }}
+                        loading="lazy"
+                      />
                     </div>
-                    <small className="text-muted d-block mb-1">Brand: {product.brand}</small>
-                    <span className="text-success fw-medium d-block">⭐ {product.rating} / 5</span>
-                    <span className="text-success d-block">Special Offer</span>
-                    <p className="mt-2">₹{product.price}</p>
+                    <div className="col-10">
+                      <div className="d-flex justify-content-between">
+                        <h5>{truncateText(product.title, 90)}</h5>
+                        <button
+                          className="btn btn-sm"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            toggleWishlist(product._id, category);
+                          }}
+                          style={{ fontSize: "20px", color: "black" }}
+                        >
+                          {wishlist.includes(product._id) ? (
+                            <PiHeartStraightFill />
+                          ) : (
+                            <PiHeartDuotone />
+                          )}
+                        </button>
+                      </div>
+                      <small className="text-muted d-block mb-1">Brand: {product.brand}</small>
+                      <span className="text-success fw-medium d-block">⭐ {product.rating} / 5</span>
+                      <span className="text-success d-block">Special Offer</span>
+                      <p className="mt-2">₹{product.price}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Link>
-          ))
+              </Link>
+            ))}
+
+            {/* Pagination */}
+            <div className="d-flex justify-content-center mt-4">
+              <nav>
+                <ul className="pagination">
+                  <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                    <button className="page-link text-dark" onClick={() => paginate(currentPage - 1)}>
+                      Previous
+                    </button>
+                  </li>
+
+                  {[...Array(totalPages)].map((_, index) => (
+                    <li
+                      key={index + 1}
+                      className={`page-item  ${currentPage === index + 1 ? "active" : ""}`}
+                    >
+                      <button className="page-link text-dark" onClick={() => paginate(index + 1)}>
+                        {index + 1}
+                      </button>
+                    </li>
+                  ))}
+
+                  <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                    <button className="page-link text-dark" onClick={() => paginate(currentPage + 1)}>
+                      Next
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </>
         ) : (
           <p className="text-muted">No products found for "{category}"</p>
         )}

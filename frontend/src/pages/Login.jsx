@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../assets/css/pages/Login.css";
 import axiosInstance from "../context/axiosInstance";
+import { useAlert } from "../context/AlertContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const {triggerAlert} = useAlert();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -20,7 +22,8 @@ const Login = () => {
 
       if (res.data.token) {
         localStorage.setItem("token", res.data.token);
-        alert(res.data.message);
+        // alert(res.data.message);
+        triggerAlert(res.data.message);
         navigate("/");
       } else {
         setError(res.data.message || "Something went wrong");

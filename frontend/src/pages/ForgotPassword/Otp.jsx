@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../assets/css/pages/ForgotPassword/OtpVerification.css";
 import axiosInstance from "../../context/axiosInstance";
+import { useAlert } from "../../context/AlertContext";
 
 const ForgotPasswordOtp = () => {
   const [otp, setOtp] = useState(["", "", "", ""]);
   const inputRefs = useRef([]);
   const navigate = useNavigate();
   const resetKey = localStorage.getItem("activationKey");
+  const { triggerAlert } = useAlert();
 
   useEffect(() => {
     if (inputRefs.current[0]) inputRefs.current[0].focus(); // Auto-focus first input on load
@@ -33,13 +35,15 @@ const ForgotPasswordOtp = () => {
 
   const handleVerifyOtp = async () => {
     if (!resetKey) {
-      alert("Reset key missing. Please request a new OTP.");
+      triggerAlert("Reset key missing. Please request a new OTP.");
+      // alert("Reset key missing. Please request a new OTP.");
       return;
     }
 
     const otpValue = otp.join("").trim();
     if (otpValue.length !== 4) {
-      alert("Please enter a 4-digit OTP.");
+      triggerAlert("Please enter a 4-digit OTP.");
+      // alert("Please enter a 4-digit OTP.");
       return;
     }
 
@@ -51,15 +55,18 @@ const ForgotPasswordOtp = () => {
       );
 
       if (response.status === 200) {
-        alert("OTP Verified! You can now reset your password.");
+        triggerAlert("OTP Verified! You can now reset your password.");
+        // alert("OTP Verified! You can now reset your password.");
         localStorage.setItem("resetToken", response.data.resetToken);
         navigate("/reset-password");
       } else {
-        alert(response.data.message || "Invalid OTP. Please try again.");
+        triggerAlert(response.data.message || "Invalid OTP. Please try again.");
+        // alert(response.data.message || "Invalid OTP. Please try again.");
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
-      alert("Something went wrong. Please try again.");
+      triggerAlert("Something went wrong. Please try again.");
+      // alert("Something went wrong. Please try again.");
     }
   };
 

@@ -47,8 +47,9 @@ app.get(["/", "/home", "/index"], (req, res) => {
 
 const PORT = process.env.PORT;
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_URI || "mongodb+srv://kishorekumar0603:kk1606@buyit.2kfyowp.mongodb.net/BuyIt")
   .then(() => {
+    console.log(process.env.MONGO_URI);
     console.log("MongoDB Connected");
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })

@@ -14,7 +14,7 @@ export const CartProvider = ({ children }) => {
 
   const fetchCart = async () => {
     try {
-      const res = await axiosInstance.get("http://localhost:5000/api/cart", {
+      const res = await axiosInstance.get("/api/cart", {
         headers: {
           Authorization: `Bearer ${token}`,
         },

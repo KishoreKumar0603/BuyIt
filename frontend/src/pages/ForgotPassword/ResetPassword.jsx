@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../../assets/css/pages/ForgotPassword/ResetPassword.css";
 import axiosInstance from "../../context/axiosInstance";
@@ -6,6 +6,9 @@ import axiosInstance from "../../context/axiosInstance";
 import { useAlert } from "../../context/AlertContext";
 
 const ResetPassword = () => {
+  useEffect(() =>{
+    document.title = "BuyIt | Reset Password";
+  });
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();

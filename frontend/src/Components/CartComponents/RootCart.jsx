@@ -5,6 +5,9 @@ import { CartList } from "./CartList";
 import { useCart } from "../../context/CartContext";
 
 export const RootCart = () => {
+  useEffect(()=>{
+        document.title=`BuyIt | Cart`;
+      },[])
   const {
     cartItems,
     setCartItems,

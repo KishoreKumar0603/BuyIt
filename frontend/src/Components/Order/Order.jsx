@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../context/axiosInstance.js";
 export const Order = () => {
+  useEffect(()=>{
+        document.title=`BuyIt | Orders`;
+      },[])
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 

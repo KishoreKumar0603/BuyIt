@@ -5,6 +5,9 @@ import axiosInstance from "../../context/axiosInstance";
 import { useAlert } from "../../context/AlertContext";
 
 const ForgotPasswordOtp = () => {
+  useEffect(() => {
+    document.title = "BuyIt | Otp-verification"
+  });
   const [otp, setOtp] = useState(["", "", "", ""]);
   const inputRefs = useRef([]);
   const navigate = useNavigate();

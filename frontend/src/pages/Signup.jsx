@@ -3,7 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../context/axiosInstance";
 import "../assets/css/pages/Signup.css";
 import {useAlert} from "../context/AlertContext"
+import { useEffect } from "react";
 const Signup = () => {
+  useEffect(() =>{
+      document.title = "BuyIt | SignUp";
+    },[])
   const [formData, setFormData] = useState({
     name: "",
     phone: "",

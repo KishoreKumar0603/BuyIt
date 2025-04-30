@@ -21,6 +21,13 @@ export const ProductDetails = () => {
 
     fetchProduct();
   }, [category, id]);
+  useEffect(() => {
+    if (product) {
+      document.title = `BuyIt | ${product.title}`;
+    } else {
+      document.title = `BuyIt | Product Details`; // Fallback title while loading
+    }
+  }, [product]);
 
   const addToCart = async () => {
     try {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../assets/css/pages/ForgotPassword/ForgotPassword.css";
 import axiosInstance from "../../context/axiosInstance";
@@ -8,6 +8,9 @@ const ForgotPassword = () => {
   const [username, setUsername] = useState("");
   const navigate = useNavigate();
   const {triggerAlert} = useAlert();
+  useEffect(()=>{
+    document.title = "BuyIt | Forgot Password";
+  })
 
   const handleNext = async () => {
     try {

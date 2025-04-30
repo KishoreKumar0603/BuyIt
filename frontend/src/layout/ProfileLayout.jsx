@@ -31,6 +31,13 @@ const ProfileLayout = () => {
 
     fetchProfile();
   }, []);
+  useEffect(() => {
+    if (userData) {
+      document.title = `Profile | ${userData.name}`;
+    } else {
+      document.title = "BuyIt | Profile";
+    }
+  }, [userData]);
 
   if (loading) return <div className="text-center mt-5">Loading...</div>;
 
@@ -44,7 +51,7 @@ const ProfileLayout = () => {
 
         {/* Content Area */}
         <div className="col-md-9">
-          <Outlet context={{ user: userData ,token}} />
+          <Outlet context={{ user: userData, token }} />
         </div>
       </div>
     </div>

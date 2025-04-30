@@ -5,7 +5,6 @@ import mongoose from "mongoose";
 import userRoutes from "./routes/userRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
-import imgUpload from "./routes/imgUpload.js";
 import cartRoutes from "./routes/cartRouter.js";
 import wishlistRoutes from "./routes/wishlistRoutes.js";
 import orderRoutes from './routes/orderRoutes.js';
@@ -19,7 +18,10 @@ dotenv.config();
 const app = express();
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://buy-it-git-main-kishorekumars-projects-f69373c8.vercel.app'
+  'https://buy-it-git-main-kishorekumars-projects-f69373c8.vercel.app',
+  'https://buy-it-pink.vercel.app',
+  'https://buy-ab976nzi5-kishorekumars-projects-f69373c8.vercel.app/',
+
 ];
 
 app.use(
@@ -53,7 +55,6 @@ app.use("/api/user", userRoutes);
 app.use("/api/user/forgot", forgotPassRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/products/category", categoryRoutes);
-app.use("/api/product", imgUpload);
 app.use("/api/cart", cartRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 app.use("/api/orders",orderRoutes);

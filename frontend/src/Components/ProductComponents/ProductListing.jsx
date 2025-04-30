@@ -9,6 +9,9 @@ import axiosInstance from "../../context/axiosInstance";
 export const ProductListing = () => {
   const { category } = useParams();
   const { user } = useAuth();
+  useEffect(()=>{
+      document.title=`BuyIt | ${category}`;
+    },[])
 
   const [products, setProducts] = useState([]);
   const [wishlist, setWishlist] = useState([]);

@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../assets/css/pages/Login.css";
 import axiosInstance from "../context/axiosInstance";
 import { useAlert } from "../context/AlertContext";
 
 const Login = () => {
+  useEffect(() =>{
+    document.title = "BuyIt | Login";
+  },[])
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");

@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import "../../assets/css/components/ProductListing.css";
 import { PiHeartDuotone, PiHeartStraightFill } from "react-icons/pi";
-
 import axiosInstance from "../../context/axiosInstance";
 
 export const ProductListing = () => {
@@ -18,6 +17,7 @@ export const ProductListing = () => {
   const [maxPrice, setMaxPrice] = useState(100000);
   const [currentPage, setCurrentPage] = useState(1);
   const [productsPerPage] = useState(10);
+  const [loading, setLoading] = useState(false); // <-- NEW STATE
 
   const priceBreakpoints = [
     500, 1000, 2500, 5000, 7500, 10000, 15000, 20000, 25000, 30000,
@@ -27,6 +27,7 @@ export const ProductListing = () => {
 
   useEffect(() => {
     if (category) {
+      setLoading(true); // START LOADING
       axiosInstance
         .get(`/api/products?category=${category}`)
         .then((res) => {
@@ -35,7 +36,8 @@ export const ProductListing = () => {
         .catch((err) => {
           console.error("Error fetching products:", err);
           setProducts([]);
-        });
+        })
+        .finally(() => setLoading(false)); // STOP LOADING
     }
   }, [category]);
 
@@ -190,7 +192,9 @@ export const ProductListing = () => {
       </div>
 
       <div className="flex-grow-1">
-        {currentProducts.length > 0 ? (
+        {loading ? (
+          <p className="text-muted">Loading products...</p>
+        ) : currentProducts.length > 0 ? (
           <>
             {currentProducts.map((product) => (
               <Link to={`/products/${category}/${product._id}`} key={product._id} className="text-decoration-none">
@@ -246,7 +250,7 @@ export const ProductListing = () => {
                   {[...Array(totalPages)].map((_, index) => (
                     <li
                       key={index + 1}
-                      className={`page-item  ${currentPage === index + 1 ? "active" : ""}`}
+                      className={`page-item ${currentPage === index + 1 ? "active" : ""}`}
                     >
                       <button className="page-link text-dark" onClick={() => paginate(index + 1)}>
                         {index + 1}

@@ -26,6 +26,7 @@ import { ProductDetails } from "./Components/ProductComponents/ProductDetails.js
 import { OrderSuccess } from "./Components/CartComponents/OrderSuccess.jsx";
 import { useAlert } from "./context/AlertContext.jsx";
 import Alert from "./Components/Alert.jsx";
+import PrivateRoute from "./PrivateRoute.jsx";
 
 function App() {
   const router = createBrowserRouter(
@@ -33,23 +34,29 @@ function App() {
       <>
         <Route path="/" element={<RootLayout />} >
           <Route index element={<HomeRootLayout />}/>
-          <Route path="products/:category" element={<ProductListing />} />
-          <Route path="products/:category/:id" element={<ProductDetails />} />
-          <Route path="cart" element={<RootCart /> } />
-          <Route path="order-success" element={<OrderSuccess /> } />
-          <Route path="orders" element={<Order /> } />
-          <Route path="wishlist" element={<RootWishlist />} />
-          <Route path="profile" element={<ProfileLayout />}>
-            <Route index element={<Navigate to="personal" replace />} />
-            <Route path="personal" element={<Personal />} />
-            <Route path="cart" element={<Cart />} />
-            <Route path="wishlist" element={<Wishlist />} />
-            <Route path="payments" element={<Payments />} />
-            <Route path="address" element={<Address />} />
-            <Route path="password" element={<Password />} />
-            <Route path="settings" element={<Settings />} />
+
+          <Route element={<PrivateRoute />}>
+            <Route path="products/:category" element={<ProductListing />} />
+            <Route path="products/:category/:id" element={<ProductDetails />} />
+            <Route path="cart" element={<RootCart /> } />
+            <Route path="order-success" element={<OrderSuccess /> } />
+            <Route path="orders" element={<Order /> } />
+            <Route path="wishlist" element={<RootWishlist />} />
+            <Route path="profile" element={<ProfileLayout />}>
+              <Route index element={<Navigate to="personal" replace />} />
+              <Route path="personal" element={<Personal />} />
+              <Route path="cart" element={<Cart />} />
+              <Route path="wishlist" element={<Wishlist />} />
+              <Route path="payments" element={<Payments />} />
+              <Route path="address" element={<Address />} />
+              <Route path="password" element={<Password />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
           </Route>
         </Route>
+
+
+
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

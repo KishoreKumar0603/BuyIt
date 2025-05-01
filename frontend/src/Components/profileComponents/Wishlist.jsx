@@ -1,34 +1,36 @@
 import React, { useEffect, useState } from "react";
-import { Button } from "react-bootstrap";
+import { Button, Spinner } from "react-bootstrap";
 import axiosInstance from "../../context/axiosInstance";
 
 export const Wishlist = () => {
   const [wishlist, setWishlist] = useState([]);
+  const [loading, setLoading] = useState(true); // 👈 loading state
 
   useEffect(() => {
     const fetchWishlist = async () => {
       try {
         const token = localStorage.getItem("token");
-        
+
         const res = await axiosInstance.get("/api/wishlist/my-wishlist", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-  
+
         setWishlist(res.data);
-  
         localStorage.setItem("wishlist", JSON.stringify(res.data));
       } catch (error) {
         console.error("❌ Error fetching wishlist:", error.message);
-  
+
         const savedWishlist = localStorage.getItem("wishlist");
         if (savedWishlist) {
           setWishlist(JSON.parse(savedWishlist));
         }
+      } finally {
+        setLoading(false); // 👈 stop loading
       }
     };
-  
+
     fetchWishlist();
   }, []);
 
@@ -44,11 +46,11 @@ export const Wishlist = () => {
           },
         }
       );
-  
+
       if (res.status === 200) {
         setWishlist((prev) => {
           const updatedWishlist = prev.filter((item) => item._id !== productId);
-          localStorage.setItem("wishlist", JSON.stringify(updatedWishlist)); 
+          localStorage.setItem("wishlist", JSON.stringify(updatedWishlist));
           return updatedWishlist;
         });
       } else {
@@ -72,7 +74,7 @@ export const Wishlist = () => {
           },
         }
       );
-  
+
       if (resAddToCart.status === 200) {
         await removeFromWishlist(productId);
       } else {
@@ -82,7 +84,17 @@ export const Wishlist = () => {
       console.error("❌ Error moving to cart:", err.message);
     }
   };
-  
+
+  // ✅ Conditional rendering based on loading
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center vh-100">
+        <Spinner animation="border" role="status" variant="dark">
+          <span className="visually-hidden">Loading...</span>
+        </Spinner>
+      </div>
+    );
+  }
 
   return (
     <div className="container min-vh-100">
@@ -110,9 +122,7 @@ export const Wishlist = () => {
                   <h6 className="card-title mb-1">
                     {item.title?.length > 25 ? item.title.slice(0, 25) + "..." : item.title}
                   </h6>
-                  <p className="text-muted small">
-                    {"Specs"}
-                  </p>
+                  <p className="text-muted small">Specs</p>
                   <p className="mb-1">
                     <span className="text-decoration-line-through text-muted me-1">
                       ₹{item.originalPrice || item.price + 100}

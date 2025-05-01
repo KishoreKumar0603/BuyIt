@@ -9,9 +9,10 @@ import axiosInstance from "../../context/axiosInstance";
 export const ProductListing = () => {
   const { category } = useParams();
   const { user } = useAuth();
-  useEffect(()=>{
-      document.title=`BuyIt | ${category}`;
-    },[])
+
+  useEffect(() => {
+    document.title = `BuyIt | ${category}`;
+  }, [category]);
 
   const [products, setProducts] = useState([]);
   const [wishlist, setWishlist] = useState([]);
@@ -143,137 +144,145 @@ export const ProductListing = () => {
   };
 
   return (
-    <div className="d-flex p-3">
-      <div className="p-3 me-3 box" style={{ width: "250px", height: "400px" }}>
-        <h5 className="mb-3">Filters</h5>
-        <label className="form-label">Price</label>
-        <input
-          type="range"
-          min={priceBreakpoints[0]}
-          max={priceBreakpoints[priceBreakpoints.length - 1]}
-          step={1}
-          value={maxPrice}
-          onChange={handlePriceChange}
-          className="form-range"
-        />
-        <div className="d-flex justify-content-between">
-          <small>Min: ₹{minPrice}</small>
-          <small>Max: ₹{maxPrice}</small>
+    <>
+      {loading ? (
+        <div className="d-flex justify-content-center " style={{ height: "300px" }}>
+          <div className="spinner-border text-dark" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
         </div>
-
-        <hr />
-
-        <label className="form-label">Sort by Price</label>
-        <div className="form-check">
-          <input
-            className="form-check-input"
-            type="radio"
-            name="sortOrder"
-            id="lowToHigh"
-            value="asc"
-            checked={sortOrder === "asc"}
-            onChange={(e) => setSortOrder(e.target.value)}
-          />
-          <label className="form-check-label" htmlFor="lowToHigh">Low to High</label>
-        </div>
-        <div className="form-check">
-          <input
-            className="form-check-input"
-            type="radio"
-            name="sortOrder"
-            id="highToLow"
-            value="desc"
-            checked={sortOrder === "desc"}
-            onChange={(e) => setSortOrder(e.target.value)}
-          />
-          <label className="form-check-label" htmlFor="highToLow">High to Low</label>
-        </div>
-
-        <a href="#" onClick={clearFilter} className="text-decoration-none text-primary mt-2" style={{ cursor: "pointer" }}>
-          Clear Filter
-        </a>
-      </div>
-
-      <div className="flex-grow-1">
-        {loading ? (
-          <p className="text-muted">Loading products...</p>
-        ) : currentProducts.length > 0 ? (
-          <>
-            {currentProducts.map((product) => (
-              <Link to={`/products/${category}/${product._id}`} key={product._id} className="text-decoration-none">
-                <div className="product-card bg-white p-4 border d-flex align-items-start position-relative mb-3">
-                  <div className="row g-0 w-100">
-                    <div className="col-2 d-flex justify-content-center align-items-center" style={{ minWidth: "120px" }}>
-                      <img
-                        src={product.image_url}
-                        alt={product.title}
-                        className="img-fluid"
-                        style={{ width: "120px", height: "130px", objectFit: "contain" }}
-                        loading="lazy"
-                      />
-                    </div>
-                    <div className="col-10">
-                      <div className="d-flex justify-content-between">
-                        <h5>{truncateText(product.title, 90)}</h5>
-                        <button
-                          className="btn btn-sm"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            toggleWishlist(product._id, category);
-                          }}
-                          style={{ fontSize: "20px", color: "black" }}
-                        >
-                          {wishlist.includes(product._id) ? (
-                            <PiHeartStraightFill />
-                          ) : (
-                            <PiHeartDuotone />
-                          )}
-                        </button>
-                      </div>
-                      <small className="text-muted d-block mb-1">Brand: {product.brand}</small>
-                      <span className="text-success fw-medium d-block">⭐ {product.rating} / 5</span>
-                      <span className="text-success d-block">Special Offer</span>
-                      <p className="mt-2">₹{product.price}</p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-
-            {/* Pagination */}
-            <div className="d-flex justify-content-center mt-4">
-              <nav>
-                <ul className="pagination">
-                  <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-                    <button className="page-link text-dark" onClick={() => paginate(currentPage - 1)}>
-                      Previous
-                    </button>
-                  </li>
-
-                  {[...Array(totalPages)].map((_, index) => (
-                    <li
-                      key={index + 1}
-                      className={`page-item ${currentPage === index + 1 ? "active" : ""}`}
-                    >
-                      <button className="page-link text-dark" onClick={() => paginate(index + 1)}>
-                        {index + 1}
-                      </button>
-                    </li>
-                  ))}
-
-                  <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
-                    <button className="page-link text-dark" onClick={() => paginate(currentPage + 1)}>
-                      Next
-                    </button>
-                  </li>
-                </ul>
-              </nav>
+      ) : (
+        <div className="d-flex p-3">
+          <div className="p-3 me-3 box" style={{ width: "250px", height: "400px" }}>
+            <h5 className="mb-3">Filters</h5>
+            <label className="form-label">Price</label>
+            <input
+              type="range"
+              min={priceBreakpoints[0]}
+              max={priceBreakpoints[priceBreakpoints.length - 1]}
+              step={1}
+              value={maxPrice}
+              onChange={handlePriceChange}
+              className="form-range"
+            />
+            <div className="d-flex justify-content-between">
+              <small>Min: ₹{minPrice}</small>
+              <small>Max: ₹{maxPrice}</small>
             </div>
-          </>
-        ) : (
-          <p className="text-muted">No products found for "{category}"</p>
-        )}
-      </div>
-    </div>
+
+            <hr />
+
+            <label className="form-label">Sort by Price</label>
+            <div className="form-check">
+              <input
+                className="form-check-input"
+                type="radio"
+                name="sortOrder"
+                id="lowToHigh"
+                value="asc"
+                checked={sortOrder === "asc"}
+                onChange={(e) => setSortOrder(e.target.value)}
+              />
+              <label className="form-check-label" htmlFor="lowToHigh">Low to High</label>
+            </div>
+            <div className="form-check">
+              <input
+                className="form-check-input"
+                type="radio"
+                name="sortOrder"
+                id="highToLow"
+                value="desc"
+                checked={sortOrder === "desc"}
+                onChange={(e) => setSortOrder(e.target.value)}
+              />
+              <label className="form-check-label" htmlFor="highToLow">High to Low</label>
+            </div>
+
+            <a href="#" onClick={clearFilter} className="text-decoration-none text-primary mt-2" style={{ cursor: "pointer" }}>
+              Clear Filter
+            </a>
+          </div>
+
+          <div className="flex-grow-1">
+            {currentProducts.length > 0 ? (
+              <>
+                {currentProducts.map((product) => (
+                  <Link to={`/products/${category}/${product._id}`} key={product._id} className="text-decoration-none">
+                    <div className="product-card bg-white p-4 border d-flex align-items-start position-relative mb-3">
+                      <div className="row g-0 w-100">
+                        <div className="col-2 d-flex justify-content-center align-items-center" style={{ minWidth: "120px" }}>
+                          <img
+                            src={product.image_url}
+                            alt={product.title}
+                            className="img-fluid"
+                            style={{ width: "120px", height: "130px", objectFit: "contain" }}
+                            loading="lazy"
+                          />
+                        </div>
+                        <div className="col-10">
+                          <div className="d-flex justify-content-between">
+                            <h5>{truncateText(product.title, 90)}</h5>
+                            <button
+                              className="btn btn-sm"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                toggleWishlist(product._id, category);
+                              }}
+                              style={{ fontSize: "20px", color: "black" }}
+                            >
+                              {wishlist.includes(product._id) ? (
+                                <PiHeartStraightFill />
+                              ) : (
+                                <PiHeartDuotone />
+                              )}
+                            </button>
+                          </div>
+                          <small className="text-muted d-block mb-1">Brand: {product.brand}</small>
+                          <span className="text-success fw-medium d-block">⭐ {product.rating} / 5</span>
+                          <span className="text-success d-block">Special Offer</span>
+                          <p className="mt-2">₹{product.price}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+
+                {/* Pagination */}
+                <div className="d-flex justify-content-center mt-4">
+                  <nav>
+                    <ul className="pagination">
+                      <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                        <button className="page-link text-dark" onClick={() => paginate(currentPage - 1)}>
+                          Previous
+                        </button>
+                      </li>
+
+                      {[...Array(totalPages)].map((_, index) => (
+                        <li
+                          key={index + 1}
+                          className={`page-item ${currentPage === index + 1 ? "active" : ""}`}
+                        >
+                          <button className="page-link text-dark" onClick={() => paginate(index + 1)}>
+                            {index + 1}
+                          </button>
+                        </li>
+                      ))}
+
+                      <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                        <button className="page-link text-dark" onClick={() => paginate(currentPage + 1)}>
+                          Next
+                        </button>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              </>
+            ) : (
+              <p className="text-muted">No products found for "{category}"</p>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 };

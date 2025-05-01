@@ -11,6 +11,8 @@ const Alert = ({ message, show, onClose }) => {
       return () => clearTimeout(timer);
     }
   }, [show, onClose]);
+  if(!show) return null
+  ;
 
   return (
     <AnimatePresence>
@@ -19,7 +21,7 @@ const Alert = ({ message, show, onClose }) => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
-          className="custom-alert bg-white p-3"
+          className="custom-alert bg-white px-4 py-2"
         >
           <div className="alert-content w-100 d-flex flex-row justify-content-around align-items-center">
             <span className="alert-text">{message}</span>

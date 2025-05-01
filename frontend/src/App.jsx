@@ -1,6 +1,13 @@
 import "./App.css";
 import Login from "./pages/Login.jsx";
-import { BrowserRouter as Router, Route, Routes, createBrowserRouter, createRoutesFromElements, RouterProvider } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  createBrowserRouter,
+  createRoutesFromElements,
+  RouterProvider,
+} from "react-router-dom";
 import Signup from "./pages/Signup.jsx";
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import OtpVerification from "./pages/ForgotPassword/OtpVerification";
@@ -9,7 +16,7 @@ import Otp from "./pages/ForgotPassword/Otp.jsx";
 import { NotFound } from "./pages/NotFound.jsx";
 import { RootLayout } from "./layout/RootLayout.jsx";
 import ProfileLayout from "./layout/ProfileLayout.jsx";
-import {Personal} from './Components/profileComponents/Personal.jsx';
+import { Personal } from "./Components/profileComponents/Personal.jsx";
 import { Navigate } from "react-router-dom";
 import { Cart } from "./Components/profileComponents/Cart.jsx";
 import { Wishlist } from "./Components/profileComponents/Wishlist.jsx";
@@ -24,23 +31,22 @@ import HomeRootLayout from "./layout/HomeRootLayout.jsx";
 import { ProductListing } from "./Components/ProductComponents/ProductListing.jsx";
 import { ProductDetails } from "./Components/ProductComponents/ProductDetails.jsx";
 import { OrderSuccess } from "./Components/CartComponents/OrderSuccess.jsx";
-import { useAlert } from "./context/AlertContext.jsx";
-import Alert from "./Components/Alert.jsx";
 import PrivateRoute from "./PrivateRoute.jsx";
+import CustomAlertWrapper from "./context/CustomAlertWrapper.jsx";
 
 function App() {
   const router = createBrowserRouter(
     createRoutesFromElements(
       <>
-        <Route path="/" element={<RootLayout />} >
-          <Route index element={<HomeRootLayout />}/>
+        <Route path="/" element={<RootLayout />}>
+          <Route index element={<HomeRootLayout />} />
 
           <Route element={<PrivateRoute />}>
             <Route path="products/:category" element={<ProductListing />} />
             <Route path="products/:category/:id" element={<ProductDetails />} />
-            <Route path="cart" element={<RootCart /> } />
-            <Route path="order-success" element={<OrderSuccess /> } />
-            <Route path="orders" element={<Order /> } />
+            <Route path="cart" element={<RootCart />} />
+            <Route path="order-success" element={<OrderSuccess />} />
+            <Route path="orders" element={<Order />} />
             <Route path="wishlist" element={<RootWishlist />} />
             <Route path="profile" element={<ProfileLayout />}>
               <Route index element={<Navigate to="personal" replace />} />
@@ -55,8 +61,6 @@ function App() {
           </Route>
         </Route>
 
-
-
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -64,30 +68,16 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/otp-verify" element={<Otp />} />
         <Route path="*" element={<NotFound />} />
-        
       </>
     )
-  )
+  );
 
-  return(
+  return (
     <>
-   <RouterProvider router={router} />
-   <CustomAlertWrapper />
+      <RouterProvider router={router} />
+      <CustomAlertWrapper />
     </>
   );
 }
-
-
-const CustomAlertWrapper = () => {
-  const { alertMessage, showAlert, closeAlert } = useAlert();
-
-  return (
-    <Alert
-      message={alertMessage}
-      show={showAlert}
-      onClose={closeAlert}
-    />
-  );
-};
 
 export default App;

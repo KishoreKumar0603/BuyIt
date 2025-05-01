@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../context/axiosInstance.js";
+
 export const Order = () => {
-  useEffect(()=>{
-        document.title=`BuyIt | Orders`;
-      },[])
+  useEffect(() => {
+    document.title = `BuyIt | Orders`;
+  }, []);
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,9 +33,9 @@ export const Order = () => {
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
       case "delivered":
-        return "success"; 
+        return "success";
       case "processing":
-        return "warning"; 
+        return "warning";
       case "cancelled":
         return "danger";
       default:
@@ -41,10 +43,18 @@ export const Order = () => {
     }
   };
 
+  // Show spinner while loading
   if (loading) {
-    return <div className="container mt-4">Loading orders...</div>;
+    return (
+      <div className="container mt-4 d-flex justify-content-center" style={{ height: "300px" }}>
+        <div className="spinner-border text-dark" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
   }
 
+  // Show message if no orders are found
   if (orders.length === 0) {
     return <div className="container mt-4">No orders found.</div>;
   }
@@ -98,9 +108,7 @@ export const Order = () => {
                       verticalAlign: "middle",
                     }}
                   ></span>
-                  <span className={`text-dark`}>
-                    {order.orderStatus}
-                  </span>
+                  <span className={`text-dark`}>{order.orderStatus}</span>
                 </p>
                 <h5 className="fw-bold mt-2">₹{item.price}</h5>
               </div>

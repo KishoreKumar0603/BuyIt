@@ -13,8 +13,6 @@ const ProfileLayout = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem("token");
-
         const res = await axiosInstance.get("/api/user/my-profile", {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -22,15 +20,16 @@ const ProfileLayout = () => {
         });
 
         setUserData(res.data.user);
-        setLoading(false);
       } catch (error) {
         console.error("Error fetching user data:", error);
+      } finally {
         setLoading(false);
       }
     };
 
     fetchProfile();
   }, []);
+
   useEffect(() => {
     if (userData) {
       document.title = `Profile | ${userData.name}`;
@@ -39,7 +38,16 @@ const ProfileLayout = () => {
     }
   }, [userData]);
 
-  if (loading) return <div className="text-center mt-5">Loading...</div>;
+  // Loading spinner UI
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center min-vh-100">
+        <div className="spinner-border text-dark" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container-fluid px-5 min-vh-100">

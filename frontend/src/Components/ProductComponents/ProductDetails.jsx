@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import axiosInstance from '../../context/axiosInstance';
 import { useAlert } from "../../context/AlertContext";
+
 export const ProductDetails = () => {
   const { category, id } = useParams();
   const [product, setProduct] = useState(null);
@@ -21,11 +22,12 @@ export const ProductDetails = () => {
 
     fetchProduct();
   }, [category, id]);
+
   useEffect(() => {
     if (product) {
       document.title = `BuyIt | ${product.title}`;
     } else {
-      document.title = `BuyIt | Product Details`; // Fallback title while loading
+      document.title = `BuyIt | Product Details`;
     }
   }, [product]);
 
@@ -51,12 +53,10 @@ export const ProductDetails = () => {
       currentCart.push({ ...product, quantity: 1 });
       localStorage.setItem("cart", JSON.stringify(currentCart));
   
-      // alert("Product added to cart!");
       triggerAlert("Product added to cart!");
     } catch (error) {
       console.error("Error adding to cart:", error.response?.data || error.message);
       triggerAlert(error.response?.data?.error || "Failed to add to cart.");
-      // alert(error.response?.data?.error || "Failed to add to cart.");
     }
   };
   
@@ -81,20 +81,21 @@ export const ProductDetails = () => {
           },
         }
       );
-  
-      // Clear the cart and redirect
       localStorage.removeItem('cart');
       setRedirectToOrderConfirmation(true);
     } catch (error) {
       console.error('Error placing order:', error.response?.data || error.message);
-      // alert(error.response?.data?.error || "Failed to place order.");
       triggerAlert(error.response?.data?.error || "Failed to place order.");
     }
   };
-  
-
   if (!product) {
-    return <div className="text-center py-5 box">Loading...</div>;
+    return (
+      <div className="container py-5 d-flex justify-content-center" style={{ height: '300px' }}>
+        <div className="spinner-border text-dark" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
   }
 
   if (redirectToOrderConfirmation) {

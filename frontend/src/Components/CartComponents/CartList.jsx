@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
+import axiosInstance from "../../context/axiosInstance";
 
 export const CartList = () => {
   const { cartItems, setCartItems, setTotalPrice, setIsProductAvail } =
@@ -23,18 +24,20 @@ export const CartList = () => {
     const changedItem = updatedItems.find((item) => item._id === itemId);
 
     try {
-      await fetch(`http://localhost:5000/api/cart/update`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+      await axiosInstance.put(
+        `/api/cart/update`,
+        {
           productId: changedItem.product._id,
           quantity: changedItem.quantity,
           price: changedItem.product.price,
-        }),
-      });
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const newTotal = updatedItems.reduce(
         (sum, item) => sum + item.product.price * item.quantity,
@@ -49,15 +52,11 @@ export const CartList = () => {
   const handleRemove = async (itemId) => {
     const removedItem = cartItems.find((item) => item._id === itemId);
     try {
-      await fetch(
-        `http://localhost:5000/api/cart/remove/${removedItem.product._id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await axiosInstance.delete(`/api/cart/remove/${removedItem.product._id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const newItems = cartItems.filter((item) => item._id !== itemId);
       setCartItems(newItems);
@@ -135,9 +134,7 @@ export const CartList = () => {
                     </button>
                   </div>
                   <div className="col-8">
-                    <Link
-                      to={`/products/${item.category}/${item.product?._id}`}
-                    >
+                    <Link to={`/products/${item.category}/${item.product?._id}`}>
                       <Button variant="dark">View</Button>
                     </Link>
                     <Button

@@ -1,16 +1,15 @@
 .custom-alert {
-  background: white;
-  padding: 2rem;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
   position: fixed;
-  top: 2;
+  top: 10px;
   left: 40%;
+  width: 300px;
   transform: translateX(-50%);
-  z-index: 1000;
-  width: 350px;
-  text-align: center;
+  z-index: 9999;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
+
 .custom-alert {
   transition: all 0.3s ease;
 }
@@ -27,8 +26,9 @@
 }
 
 .ok-btn {
-  background: black;
-  color: white;
+  background: transparent;
+  color: black;
+  text-decoration: underline;
   border: none;
   border-radius: 6px;
   cursor: pointer;

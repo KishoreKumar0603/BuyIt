@@ -43,7 +43,7 @@ const PlaceOrderBox = ({ cartItems, setCartItems, setTotalPrice, setIsProductAva
         setIsProductAvail(false);
 
         // alert(response.data.message || "Order placed successfully!");
-        triggerAlertlert(response.data.message || "Order placed successfully!");
+        triggerAlert(response.data.message || "Order placed successfully!");
         navigate("/order-success");
       } else {
         // alert(response.data.error || "Error placing order. Please try again.");

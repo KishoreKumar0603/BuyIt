@@ -66,7 +66,7 @@ export const Cart = () => {
     const removedItem = cartItems.find((item) => item._id === itemId);
     try {
       const response = await axiosInstance.delete(
-        `api/cart/remove/${removedItem.product._id}`,
+        `/api/cart/remove/${removedItem.product._id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

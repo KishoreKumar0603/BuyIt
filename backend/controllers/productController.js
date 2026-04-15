@@ -23,15 +23,13 @@ export const addProduct = async (req, res) => {
       .listCollections()
       .toArray();
     const collectionExists = collections.some(
-      (col) => col.name === correctCategory
+      (col) => col.name === correctCategory,
     );
 
     if (!collectionExists) {
-      return res
-        .status(404)
-        .json({
-          message: `Category '${correctCategory}' not found in the database.`,
-        });
+      return res.status(404).json({
+        message: `Category '${correctCategory}' not found in the database.`,
+      });
     }
 
     // 🛠 Step 3: Upload Image & Get URL
@@ -57,10 +55,11 @@ export const addProduct = async (req, res) => {
       category: { main: correctCategory, sub: category.sub || "N/A" },
       stock,
       price,
-      rating: rating || "N/A",
+      rating: rating || 0,
       features,
       image_url: imageUrl,
       sold: sold || 0,
+      reviews: [],
     });
 
     await newProduct.save();
@@ -75,51 +74,141 @@ export const addProduct = async (req, res) => {
 
 export const getProductsByCategory = async (req, res) => {
   try {
-    const { category } = req.query;
+    const {
+      category,
+      search,
+      minPrice,
+      maxPrice,
+      sortBy,
+      sortOrder,
+      page = 1,
+      limit = 10,
+    } = req.query;
 
-    if (!category) {
-      return res.status(400).json({ message: "Category is required" });
-    }
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
 
-    // 🔍 Step 1: Find the correct collection name using category aliases
-    const categoryData = await Category.findOne({
-      $or: [
-        { name: category.toLowerCase() },
-        { aliases: category.toLowerCase() },
-      ],
-    });
+    let collectionsToSearch = [];
 
-    if (!categoryData) {
-      return res.status(404).json({ message: "Category not found" });
-    }
+    if (category) {
+      // 🔍 Step 1: Find the correct collection name using category aliases
+      const categoryData = await Category.findOne({
+        $or: [
+          { name: category.toLowerCase() },
+          { aliases: category.toLowerCase() },
+        ],
+      });
 
-    const collectionName = categoryData.name; // The actual collection name (e.g., "mobiles")
+      if (!categoryData) {
+        return res.status(404).json({ message: "Category not found" });
+      }
 
-    // 🔍 Step 2: Check if the collection exists
-    const collections = await mongoose.connection.db
-      .listCollections()
-      .toArray();
-    const collectionExists = collections.some(
-      (col) => col.name === collectionName
-    );
+      const collectionName = categoryData.name;
 
-    if (!collectionExists) {
-      return res.status(404).json({ message: "Category not found" });
-    }
-
-    // ✅ Use existing model or create one dynamically
-    const ProductModel =
-      mongoose.models[collectionName] ||
-      mongoose.model(
-        collectionName,
-        new mongoose.Schema({}, { strict: false }),
-        collectionName
+      // 🔍 Step 2: Check if the collection exists
+      const collections = await mongoose.connection.db
+        .listCollections()
+        .toArray();
+      const collectionExists = collections.some(
+        (col) => col.name === collectionName,
       );
 
-    // Fetch products from the correct collection
-    const products = await ProductModel.find();
+      if (!collectionExists) {
+        return res.status(404).json({ message: "Category not found" });
+      }
 
-    res.json(products);
+      collectionsToSearch = [collectionName];
+    } else {
+      // If no category specified, search all product collections
+      const allCollections = await mongoose.connection.db
+        .listCollections()
+        .toArray();
+      // Filter collections that are product categories (exclude system collections)
+      const categoryNames = await Category.find({}, "name");
+      const categoryNameSet = new Set(categoryNames.map((c) => c.name));
+      collectionsToSearch = allCollections
+        .filter((col) => categoryNameSet.has(col.name))
+        .map((col) => col.name);
+    }
+
+    let allProducts = [];
+    let totalCount = 0;
+
+    for (const collectionName of collectionsToSearch) {
+      const ProductModel =
+        mongoose.models[collectionName] ||
+        mongoose.model(
+          collectionName,
+          new mongoose.Schema({}, { strict: false }),
+          collectionName,
+        );
+
+      let query = {};
+
+      // Keyword search
+      if (search) {
+        query.$or = [
+          { title: { $regex: search, $options: "i" } },
+          { brand: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } },
+        ];
+      }
+
+      // Price filtering
+      if (minPrice || maxPrice) {
+        query.price = {};
+        if (minPrice) query.price.$gte = parseFloat(minPrice);
+        if (maxPrice) query.price.$lte = parseFloat(maxPrice);
+      }
+
+      // Get total count for pagination
+      const count = await ProductModel.countDocuments(query);
+      totalCount += count;
+
+      // Get paginated products
+      let products = await ProductModel.find(query).skip(skip).limit(limitNum);
+
+      // Add category info to each product
+      products = products.map((product) => ({
+        ...product.toObject(),
+        category: collectionName,
+      }));
+
+      allProducts.push(...products);
+    }
+
+    // Sorting
+    if (sortBy) {
+      const order = sortOrder === "desc" ? -1 : 1;
+      allProducts.sort((a, b) => {
+        if (sortBy === "price") {
+          return (a.price - b.price) * order;
+        } else if (sortBy === "rating") {
+          return (a.rating - b.rating) * order;
+        }
+        return 0;
+      });
+    }
+
+    // Apply pagination to the final sorted results
+    const startIndex = skip;
+    const endIndex = startIndex + limitNum;
+    const paginatedProducts = allProducts.slice(startIndex, endIndex);
+
+    const totalPages = Math.ceil(totalCount / limitNum);
+
+    res.json({
+      products: paginatedProducts,
+      pagination: {
+        currentPage: pageNum,
+        totalPages,
+        totalProducts: totalCount,
+        hasNextPage: pageNum < totalPages,
+        hasPrevPage: pageNum > 1,
+        limit: limitNum,
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -151,7 +240,7 @@ export const getProductById = async (req, res) => {
       mongoose.model(
         category,
         new mongoose.Schema({}, { strict: false }),
-        category
+        category,
       );
 
     const product = await ProductModel.findById(id);
@@ -191,7 +280,7 @@ export const deleteProduct = async (req, res) => {
         mongoose.model(
           category,
           new mongoose.Schema({}, { strict: false }),
-          category
+          category,
         );
 
       // Try to find the product in this collection
@@ -245,7 +334,7 @@ export const updateProduct = async (req, res) => {
         mongoose.model(
           category,
           new mongoose.Schema({}, { strict: false }),
-          category
+          category,
         );
 
       const product = await ProductModel.findById(id);
@@ -280,7 +369,7 @@ export const updateProduct = async (req, res) => {
         mongoose.model(
           oldCategory,
           new mongoose.Schema({}, { strict: false }),
-          oldCategory
+          oldCategory,
         );
 
       await OldProductModel.findByIdAndDelete(id);
@@ -290,7 +379,7 @@ export const updateProduct = async (req, res) => {
         mongoose.model(
           newCategory,
           new mongoose.Schema({}, { strict: false }),
-          newCategory
+          newCategory,
         );
 
       const updatedProduct = new NewProductModel({
@@ -314,13 +403,13 @@ export const updateProduct = async (req, res) => {
       mongoose.model(
         oldCategory,
         new mongoose.Schema({}, { strict: false }),
-        oldCategory
+        oldCategory,
       );
 
     const updatedProduct = await ProductModel.findByIdAndUpdate(
       id,
       updateData,
-      { new: true }
+      { new: true },
     );
 
     res.status(200).json({
@@ -332,5 +421,71 @@ export const updateProduct = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error updating product", error: error.message });
+  }
+};
+
+export const addReview = async (req, res) => {
+  try {
+    const { category, id } = req.params;
+    const { rating, comment } = req.body;
+    const userId = req.user._id;
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res
+        .status(400)
+        .json({ message: "Rating must be between 1 and 5" });
+    }
+
+    // Check if category exists
+    const collections = await mongoose.connection.db
+      .listCollections()
+      .toArray();
+    const collectionExists = collections.some((col) => col.name === category);
+    if (!collectionExists) {
+      return res
+        .status(404)
+        .json({ message: `Category '${category}' not found` });
+    }
+
+    // Get ProductModel
+    const ProductModel =
+      mongoose.models[category] ||
+      mongoose.model(
+        category,
+        new mongoose.Schema({}, { strict: false }),
+        category,
+      );
+
+    const product = await ProductModel.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Check if user already reviewed
+    const existingReview = product.reviews.find(
+      (review) => review.userId.toString() === userId.toString(),
+    );
+    if (existingReview) {
+      return res
+        .status(400)
+        .json({ message: "You have already reviewed this product" });
+    }
+
+    // Add review
+    product.reviews.push({
+      userId,
+      rating,
+      comment: comment || "",
+      createdAt: new Date(),
+    });
+
+    // Calculate average rating
+    product.calculateAverageRating();
+
+    await product.save();
+
+    res.status(201).json({ message: "Review added successfully", product });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

@@ -8,8 +8,8 @@ const router = express.Router();
 // ✅ Add product to wishlist with category validation
 router.post("/add", isAuth, async (req, res) => {
   try {
-    // const userId = req.user._id;
-    let { productId, category , userId} = req.body;
+    const userId = req.user._id;
+    let { productId, category } = req.body;
     console.log(category);
 
     // 🚨 Check if required fields exist
@@ -39,7 +39,7 @@ router.post("/add", isAuth, async (req, res) => {
       ProductModel = mongoose.model(
         category,
         new mongoose.Schema({}, { strict: false }),
-        category
+        category,
       );
     }
 
@@ -64,7 +64,7 @@ router.post("/add", isAuth, async (req, res) => {
       productId = new mongoose.Types.ObjectId(productId);
 
       const isAlreadyInWishlist = wishlist.products.some(
-        (item) => item.productId?.toString() === productId.toString()
+        (item) => item.productId?.toString() === productId.toString(),
       );
 
       if (!isAlreadyInWishlist) {
@@ -104,7 +104,7 @@ router.get("/my-wishlist", isAuth, async (req, res) => {
           ProductModel = mongoose.model(
             item.category,
             new mongoose.Schema({}, { strict: false }),
-            item.category
+            item.category,
           );
         }
 
@@ -118,7 +118,7 @@ router.get("/my-wishlist", isAuth, async (req, res) => {
       } catch (err) {
         console.error(
           `Error fetching product from collection ${item.category}:`,
-          err.message
+          err.message,
         );
       }
     }
@@ -149,7 +149,7 @@ router.post("/remove", isAuth, async (req, res) => {
     const productIdStr = productId.toString();
 
     const productIndex = wishlist.products.findIndex(
-      (item) => item?.productId?.toString() === productIdStr
+      (item) => item?.productId?.toString() === productIdStr,
     );
 
     if (productIndex === -1) {

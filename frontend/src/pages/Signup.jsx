@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../api/userApi";
 import "../assets/css/pages/Signup.css";
@@ -180,7 +180,7 @@ const Signup = () => {
             type="button"
             className="btn btn-outline-dark w-100 mt-3 d-flex align-items-center justify-content-center"
             onClick={() =>
-              (window.location.href = `${import.meta.env.VITE_BACKEND_URL || "http://localhost:5000"}/api/user/auth/google`)
+              (window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/user/auth/google`)
             }
           >
             <svg width="18" height="18" className="me-2" viewBox="0 0 24 24">

@@ -6,7 +6,6 @@ import sendMail from "../middleware/sendMail.js";
 
 dotenv.config();
 
-// Register User
 
 export const registerUser = async (req, res) => {
   try {
@@ -18,10 +17,8 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate OTP
     const otp = Math.floor(1000 + Math.random() * 9000);
     const activationKey = jwt.sign(
       { name, email, phone, hashedPassword, otp },
@@ -59,7 +56,6 @@ export const registerUser = async (req, res) => {
   }
 };
 
-//verify otp
 export const verifyUser = async (req, res) => {
   try {
     const { otp, activationKey } = req.body;
@@ -88,7 +84,6 @@ export const verifyUser = async (req, res) => {
         .json({ message: "Incorrect OTP. Please try again." });
     }
 
-    // Check if the user already exists
     const existingUser = await User.findOne({ email: decoded.email });
     if (existingUser) {
       return res
@@ -96,7 +91,6 @@ export const verifyUser = async (req, res) => {
         .json({ message: "User already exists. Please log in." });
     }
 
-    // Create new user
     await User.create({
       name: decoded.name,
       email: decoded.email,
@@ -111,28 +105,23 @@ export const verifyUser = async (req, res) => {
   }
 };
 
-//Login User
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
       console.log("User not found"); // Debugging log
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Compare passwords
     if (!(await user.matchPassword(password))) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Generate JWT token
     const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "15m",
     });
 
-    // Generate refresh token
     const refreshToken = jwt.sign(
       { _id: user._id },
       process.env.REFRESH_SECRET,
@@ -141,7 +130,6 @@ export const loginUser = async (req, res) => {
       },
     );
 
-    // Save refresh token to user
     user.refreshToken = refreshToken;
     await user.save();
     const {
@@ -162,7 +150,6 @@ export const loginUser = async (req, res) => {
   }
 };
 
-//Profile View
 export const myProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select("-password");
@@ -176,7 +163,6 @@ export const myProfile = async (req, res) => {
   }
 };
 
-// Delete Authenticated User
 export const deleteUser = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -195,7 +181,6 @@ export const deleteUser = async (req, res) => {
   }
 };
 
-// Update Authenticated User
 export const updateUser = async (req, res) => {
   try {
     const updates = req.body;
@@ -218,7 +203,6 @@ export const updateUser = async (req, res) => {
   }
 };
 
-//update password
 export const changePass = async (req, res) => {
   const { oldPassword, newPassword } = req.body;
   const user = await User.findById(req.user.id); // or req.user._id based on JWT
@@ -234,7 +218,6 @@ export const changePass = async (req, res) => {
   res.status(200).json({ message: "Password updated successfully" });
 };
 
-// Refresh Token
 export const refreshToken = async (req, res) => {
   try {
     const { refreshToken } = req.body;
@@ -255,7 +238,6 @@ export const refreshToken = async (req, res) => {
       return res.status(403).json({ message: "Invalid refresh token" });
     }
 
-    // Generate new access token
     const newToken = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "15m",
     });
@@ -268,17 +250,14 @@ export const refreshToken = async (req, res) => {
   }
 };
 
-// Google OAuth Callback
 export const googleAuthCallback = async (req, res) => {
   try {
     const user = req.user;
 
-    // Generate JWT token
     const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "15m",
     });
 
-    // Generate refresh token
     const refreshToken = jwt.sign(
       { _id: user._id },
       process.env.REFRESH_SECRET || process.env.JWT_SECRET,
@@ -287,20 +266,16 @@ export const googleAuthCallback = async (req, res) => {
       },
     );
 
-    // Save refresh token to user
     user.refreshToken = refreshToken;
     await user.save();
 
-    // Check if user needs additional information
     if (user.needsAdditionalInfo) {
-      // Redirect to frontend with token and flag for additional info
       const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
       return res.redirect(
         `${frontendUrl}/complete-profile?token=${token}&needsInfo=true`,
       );
     }
 
-    // User has complete profile, redirect to home
     const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
     res.redirect(`${frontendUrl}/?token=${token}&refreshToken=${refreshToken}`);
   } catch (error) {
@@ -311,7 +286,6 @@ export const googleAuthCallback = async (req, res) => {
   }
 };
 
-// Complete Profile for Google OAuth users
 export const completeProfile = async (req, res) => {
   try {
     const { phone, gender, address } = req.body;

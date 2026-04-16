@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../assets/css/pages/Login.css";
 import { loginUser } from "../api/userApi";
 import { useAlert } from "../context/AlertContext";
+import { useAuth } from "../context/AuthContext";
+import { jwtDecode } from "jwt-decode";
 import { VscEye, VscEyeClosed } from "react-icons/vsc"; // 👈 Import icons
 
 const Login = () => {
@@ -17,28 +19,61 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { triggerAlert } = useAlert();
+  const { setUser } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail) {
+      setError("Email is required.");
+      setLoading(false);
+      return;
+    }
+
+    if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
+      setError("Please enter a valid email address.");
+      setLoading(false);
+      return;
+    }
+
+    if (!trimmedPassword) {
+      setError("Password is required.");
+      setLoading(false);
+      return;
+    }
+
     try {
-      const data = await loginUser(email, password);
+      const data = await loginUser(trimmedEmail.toLowerCase(), trimmedPassword);
 
       if (data.token) {
         localStorage.setItem("token", data.token);
         if (data.refreshToken) {
           localStorage.setItem("refreshToken", data.refreshToken);
         }
+
+        const decoded = jwtDecode(data.token);
+        setUser({
+          email: decoded.email,
+          id: decoded._id,
+          token: data.token,
+        });
+
         triggerAlert(data.message);
-        navigate("/");
+        navigate("/", { replace: true });
       } else {
-        setError(data.message || "Something went wrong");
+        setError(data.message || "Something went wrong.");
       }
     } catch (err) {
       console.error("Login error:", err.response?.data || err.message);
-      setError("Login failed. Please check your credentials.");
+      setError(
+        err.response?.data?.message ||
+          "Login failed. Please check your credentials.",
+      );
     } finally {
       setLoading(false);
     }
@@ -146,7 +181,7 @@ const Login = () => {
           </button>
         </form>
         <p className="text-center mt-3">
-          Don't have an account? <Link to="/signup">Sign Up</Link>
+          Don&apos;t have an account? <Link to="/signup">Sign Up</Link>
         </p>
       </div>
     </div>

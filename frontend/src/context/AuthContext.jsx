@@ -14,13 +14,11 @@ export const AuthProvider = ({ children }) => {
     const urlToken = urlParams.get("token");
     const urlRefreshToken = urlParams.get("refreshToken");
 
-    // Handle OAuth callback tokens from URL
     if (urlToken) {
       localStorage.setItem("token", urlToken);
       if (urlRefreshToken) {
         localStorage.setItem("refreshToken", urlRefreshToken);
       }
-      // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 

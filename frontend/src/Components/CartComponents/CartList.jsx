@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Button } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { updateCartItem, removeFromCart } from "../../api/cartApi";
@@ -35,7 +34,6 @@ export const CartList = () => {
       setTotalPrice(newTotal);
     } catch (error) {
       console.error("❌ Error updating quantity:", error.message);
-      // Revert the change on error
       setCartItems(cartItems);
     } finally {
       setLoadingItems((prev) => {
@@ -159,11 +157,10 @@ export const CartList = () => {
                     <Link
                       to={`/products/${item.category}/${item.product?._id}`}
                     >
-                      <Button variant="dark">View</Button>
+                      <button className="btn btn-dark">View</button>
                     </Link>
-                    <Button
-                      variant="dark"
-                      className="ms-3"
+                    <button
+                      className="btn btn-dark ms-3"
                       onClick={() => handleRemove(item._id)}
                       disabled={loadingItems.has(item._id)}
                     >
@@ -179,7 +176,7 @@ export const CartList = () => {
                       ) : (
                         "Remove"
                       )}
-                    </Button>
+                    </button>
                   </div>
                 </div>
               </div>

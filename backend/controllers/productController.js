@@ -10,7 +10,6 @@ export const addProduct = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    // Convert category name for consistency
     const userCategory = category.main.toLowerCase().replace(/\s+/g, "_");
 
     const categoryMapping = await Category.findOne({ aliases: userCategory });
@@ -32,7 +31,6 @@ export const addProduct = async (req, res) => {
       });
     }
 
-    // 🛠 Step 3: Upload Image & Get URL
     let imageUrl = "N/A";
     if (req.file) {
       const uploadResponse = await new Promise((resolve, reject) => {
@@ -92,7 +90,6 @@ export const getProductsByCategory = async (req, res) => {
     let collectionsToSearch = [];
 
     if (category) {
-      // 🔍 Step 1: Find the correct collection name using category aliases
       const categoryData = await Category.findOne({
         $or: [
           { name: category.toLowerCase() },
@@ -106,7 +103,6 @@ export const getProductsByCategory = async (req, res) => {
 
       const collectionName = categoryData.name;
 
-      // 🔍 Step 2: Check if the collection exists
       const collections = await mongoose.connection.db
         .listCollections()
         .toArray();
@@ -120,11 +116,9 @@ export const getProductsByCategory = async (req, res) => {
 
       collectionsToSearch = [collectionName];
     } else {
-      // If no category specified, search all product collections
       const allCollections = await mongoose.connection.db
         .listCollections()
         .toArray();
-      // Filter collections that are product categories (exclude system collections)
       const categoryNames = await Category.find({}, "name");
       const categoryNameSet = new Set(categoryNames.map((c) => c.name));
       collectionsToSearch = allCollections
@@ -146,7 +140,6 @@ export const getProductsByCategory = async (req, res) => {
 
       let query = {};
 
-      // Keyword search
       if (search) {
         query.$or = [
           { title: { $regex: search, $options: "i" } },
@@ -155,31 +148,42 @@ export const getProductsByCategory = async (req, res) => {
         ];
       }
 
-      // Price filtering
       if (minPrice || maxPrice) {
         query.price = {};
         if (minPrice) query.price.$gte = parseFloat(minPrice);
         if (maxPrice) query.price.$lte = parseFloat(maxPrice);
       }
 
-      // Get total count for pagination
-      const count = await ProductModel.countDocuments(query);
-      totalCount += count;
+      if (category) {
+        const count = await ProductModel.countDocuments(query);
+        totalCount = count;
 
-      // Get paginated products
-      let products = await ProductModel.find(query).skip(skip).limit(limitNum);
+        let queryExec = ProductModel.find(query).lean();
+        if (sortBy) {
+          const sortObj = {};
+          sortObj[sortBy] = sortOrder === "desc" ? -1 : 1;
+          queryExec = queryExec.sort(sortObj);
+        }
 
-      // Add category info to each product
-      products = products.map((product) => ({
-        ...product.toObject(),
-        category: collectionName,
-      }));
+        const products = await queryExec.skip(skip).limit(limitNum);
+        allProducts = products.map((product) => ({
+          ...product,
+          category: collectionName,
+        }));
+      } else {
+        const count = await ProductModel.countDocuments(query);
+        totalCount += count;
 
-      allProducts.push(...products);
+        let products = await ProductModel.find(query).lean();
+        products = products.map((product) => ({
+          ...product,
+          category: collectionName,
+        }));
+        allProducts.push(...products);
+      }
     }
 
-    // Sorting
-    if (sortBy) {
+    if (!category && sortBy) {
       const order = sortOrder === "desc" ? -1 : 1;
       allProducts.sort((a, b) => {
         if (sortBy === "price") {
@@ -191,10 +195,9 @@ export const getProductsByCategory = async (req, res) => {
       });
     }
 
-    // Apply pagination to the final sorted results
-    const startIndex = skip;
-    const endIndex = startIndex + limitNum;
-    const paginatedProducts = allProducts.slice(startIndex, endIndex);
+    const paginatedProducts = category
+      ? allProducts
+      : allProducts.slice(skip, skip + limitNum);
 
     const totalPages = Math.ceil(totalCount / limitNum);
 
@@ -222,7 +225,6 @@ export const getProductById = async (req, res) => {
       return res.status(400).json({ message: "Invalid product ID format" });
     }
 
-    // Check if the category (collection name) exists
     const collections = await mongoose.connection.db
       .listCollections()
       .toArray();
@@ -234,7 +236,6 @@ export const getProductById = async (req, res) => {
         .json({ message: `Category '${category}' not found` });
     }
 
-    // Dynamically create model for the given category
     const ProductModel =
       mongoose.models[category] ||
       mongoose.model(
@@ -244,7 +245,6 @@ export const getProductById = async (req, res) => {
       );
 
     const product = await ProductModel.findById(id);
-    // console.log(product);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
@@ -263,7 +263,6 @@ export const deleteProduct = async (req, res) => {
       return res.status(400).json({ message: "Product ID is required" });
     }
 
-    // Get all categories (collections) from the database
     const collections = await mongoose.connection.db
       .listCollections()
       .toArray();
@@ -272,9 +271,7 @@ export const deleteProduct = async (req, res) => {
     let deletedProduct = null;
     let deletedCategory = null;
 
-    // Loop through collections to find the product
     for (const category of collectionNames) {
-      // Get the model dynamically
       const ProductModel =
         mongoose.models[category] ||
         mongoose.model(
@@ -283,11 +280,9 @@ export const deleteProduct = async (req, res) => {
           category,
         );
 
-      // Try to find the product in this collection
       const product = await ProductModel.findById(id);
 
       if (product) {
-        // If found, delete it
         deletedProduct = await ProductModel.findByIdAndDelete(id);
         deletedCategory = category;
         break;
@@ -436,7 +431,6 @@ export const addReview = async (req, res) => {
         .json({ message: "Rating must be between 1 and 5" });
     }
 
-    // Check if category exists
     const collections = await mongoose.connection.db
       .listCollections()
       .toArray();
@@ -447,7 +441,6 @@ export const addReview = async (req, res) => {
         .json({ message: `Category '${category}' not found` });
     }
 
-    // Get ProductModel
     const ProductModel =
       mongoose.models[category] ||
       mongoose.model(
@@ -461,7 +454,6 @@ export const addReview = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // Check if user already reviewed
     const existingReview = product.reviews.find(
       (review) => review.userId.toString() === userId.toString(),
     );
@@ -471,7 +463,6 @@ export const addReview = async (req, res) => {
         .json({ message: "You have already reviewed this product" });
     }
 
-    // Add review
     product.reviews.push({
       userId,
       rating,
@@ -479,7 +470,6 @@ export const addReview = async (req, res) => {
       createdAt: new Date(),
     });
 
-    // Calculate average rating
     product.calculateAverageRating();
 
     await product.save();

@@ -1,6 +1,5 @@
 import axiosInstance from "../context/axiosInstance";
 
-// Product APIs
 export const getProducts = async (params = {}) => {
   const queryString = new URLSearchParams(params).toString();
   const response = await axiosInstance.get(`/api/products?${queryString}`);
@@ -35,7 +34,6 @@ export const addProductReview = async (category, id, rating, comment) => {
   return response.data;
 };
 
-// Category APIs
 export const getCategories = async () => {
   const response = await axiosInstance.get("/api/products/category");
   return response.data;

@@ -26,7 +26,6 @@ const productSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now },
 });
 
-// Method to calculate average rating
 productSchema.methods.calculateAverageRating = function () {
   if (this.reviews.length === 0) {
     this.rating = 0;
@@ -36,11 +35,6 @@ productSchema.methods.calculateAverageRating = function () {
   this.rating = sum / this.reviews.length;
 };
 
-/**
- * Get or create a Mongoose model dynamically based on category name.
- * @param {string} category - The main category name (e.g., "Laptops", "Mobiles").
- * @returns {mongoose.Model} - The corresponding Mongoose model.
- */
 const getProductModel = (category) => {
   const collectionName = category.toLowerCase().replace(/\s+/g, "_");
 

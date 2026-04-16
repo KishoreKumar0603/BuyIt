@@ -39,14 +39,12 @@ const ForgotPasswordOtp = () => {
   const handleVerifyOtp = async () => {
     if (!resetKey) {
       triggerAlert("Reset key missing. Please request a new OTP.");
-      // alert("Reset key missing. Please request a new OTP.");
       return;
     }
 
     const otpValue = otp.join("").trim();
     if (otpValue.length !== 4) {
       triggerAlert("Please enter a 4-digit OTP.");
-      // alert("Please enter a 4-digit OTP.");
       return;
     }
 
@@ -59,17 +57,14 @@ const ForgotPasswordOtp = () => {
 
       if (response.status === 200) {
         triggerAlert("OTP Verified! You can now reset your password.");
-        // alert("OTP Verified! You can now reset your password.");
         localStorage.setItem("resetToken", response.data.resetToken);
         navigate("/reset-password");
       } else {
         triggerAlert(response.data.message || "Invalid OTP. Please try again.");
-        // alert(response.data.message || "Invalid OTP. Please try again.");
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
       triggerAlert("Something went wrong. Please try again.");
-      // alert("Something went wrong. Please try again.");
     }
   };
 

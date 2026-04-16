@@ -10,7 +10,6 @@ export const AlertProvider = ({ children }) => {
     setAlertMessage(message);
     setShowAlert(true);
 
-    // Auto close after 3 seconds
     setTimeout(() => {
       setShowAlert(false);
       setAlertMessage("");
@@ -29,5 +28,4 @@ export const AlertProvider = ({ children }) => {
   );
 };
 
-// Hook to use alert context easily
 export const useAlert = () => useContext(AlertContext);

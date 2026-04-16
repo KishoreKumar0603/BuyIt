@@ -1,13 +1,15 @@
 import axiosInstance from "../context/axiosInstance";
 
-// Order APIs
 export const placeOrder = async (products) => {
   const response = await axiosInstance.post("/api/orders/place", { products });
   return response.data;
 };
 
-export const getUserOrders = async () => {
-  const response = await axiosInstance.get("/api/orders/my-orders");
+export const getUserOrders = async (params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  const response = await axiosInstance.get(
+    `/api/orders/my-orders?${queryString}`,
+  );
   return response.data;
 };
 
@@ -16,9 +18,11 @@ export const cancelOrder = async (orderId) => {
   return response.data;
 };
 
-// Admin Order APIs
-export const getAllOrders = async () => {
-  const response = await axiosInstance.get("/api/orders/all-orders");
+export const getAllOrders = async (params = {}) => {
+  const queryString = new URLSearchParams(params).toString();
+  const response = await axiosInstance.get(
+    `/api/orders/all-orders?${queryString}`,
+  );
   return response.data;
 };
 

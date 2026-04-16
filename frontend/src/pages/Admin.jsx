@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import  { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -46,8 +46,6 @@ export const Admin = () => {
 
   const fetchCategories = async () => {
     try {
-      // This would need a categories API endpoint
-      // For now, using hardcoded categories
       setCategories([
         "electronics",
         "clothing",

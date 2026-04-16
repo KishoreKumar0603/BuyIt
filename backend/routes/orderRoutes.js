@@ -26,7 +26,6 @@ router.post("/place", isAuth, async (req, res) => {
     for (const item of products) {
       const { productId, category, quantity } = item;
 
-      // Dynamically load model
       if (!mongoose.connection.models[category]) {
         const dynamicSchema = new mongoose.Schema({}, { strict: false });
         mongoose.model(category, dynamicSchema, category);
@@ -40,7 +39,6 @@ router.post("/place", isAuth, async (req, res) => {
           .json({ error: `Product not found in ${category}` });
       }
 
-      // ✅ Atomic Update (Conditional Quantity Check + Decrement)
       const updateResult = await ProductModel.updateOne(
         { _id: productId, stock: { $gte: quantity } },
         { $inc: { stock: -quantity } },
@@ -65,7 +63,6 @@ router.post("/place", isAuth, async (req, res) => {
       });
     }
 
-    // Save Order
     let existingOrder = await Order.findOne({ userId });
     if (existingOrder) {
       existingOrder.products.push(...orderItems);
@@ -88,7 +85,6 @@ router.post("/place", isAuth, async (req, res) => {
       res.status(200).json({ message: "Order placed successfully!" });
     }
 
-    // Clear cart after successful order
     await Cart.deleteMany({ userId });
   } catch (error) {
     console.error("❌ Order Placement Error:", error);
@@ -135,20 +131,17 @@ router.get("/my-orders", isAuth, async (req, res) => {
   }
 });
 
-// 🚀 DELETE Order by ID
 router.delete("/:orderId", isAuth, async (req, res) => {
   try {
     const { orderId } = req.params;
     const userId = req.user._id;
 
-    // 🔍 Find the order
     const order = await Order.findOne({ _id: orderId, userId });
 
     if (!order) {
       return res.status(404).json({ error: "Order not found" });
     }
 
-    // 🔥 Allow deletion only if order is still in 'pending'
     if (order.orderStatus !== "pending") {
       return res
         .status(400)
@@ -163,7 +156,6 @@ router.delete("/:orderId", isAuth, async (req, res) => {
   }
 });
 
-// Admin route to get all orders
 router.get("/all-orders", isAuth, isAdmin, async (req, res) => {
   try {
     const { page = 1, limit = 20, status } = req.query;
@@ -201,7 +193,6 @@ router.get("/all-orders", isAuth, isAdmin, async (req, res) => {
   }
 });
 
-// Admin route to update order status
 router.put("/update-status/:orderId", isAuth, isAdmin, async (req, res) => {
   try {
     const { orderId } = req.params;

@@ -1,6 +1,5 @@
 import axiosInstance from "../context/axiosInstance";
 
-// Address APIs
 export const getUserAddresses = async () => {
   const response = await axiosInstance.get("/api/addresses");
   return response.data;

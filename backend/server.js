@@ -40,7 +40,6 @@ app.use(
   }),
 );
 
-// Session configuration for passport
 app.use(
   session({
     secret: process.env.JWT_SECRET || "BuyItSecretKey",
@@ -53,14 +52,14 @@ app.use(
   }),
 );
 
-// Passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(cookieParser());
-app.use(express.urlencoded({ extended: true }));
+const JSON_LIMIT = process.env.JSON_LIMIT || "100kb";
+app.use(express.urlencoded({ extended: true, limit: JSON_LIMIT }));
 
-app.use(express.json());
+app.use(express.json({ limit: JSON_LIMIT }));
 
 app.use("/api/user", userRoutes);
 app.use("/api/user/forgot", forgotPassRoutes);

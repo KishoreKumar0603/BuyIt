@@ -6,7 +6,6 @@ export const Footer = () => {
       <div className="container">
         <div className="row text-start">
 
-          {/* About Section */}
           <div className="col-md-2 mb-2">
             <h6 className="text-muted fw-bold">About</h6>
             <ul className="list-unstyled">
@@ -17,7 +16,6 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* Groups Section */}
           <div className="col-md-2 mb-2">
             <h6 className="text-muted fw-bold">Groups</h6>
             <ul className="list-unstyled">
@@ -26,7 +24,6 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* Help Section */}
           <div className="col-md-2 mb-2">
             <h6 className="text-muted fw-bold">Help</h6>
             <ul className="list-unstyled">
@@ -37,7 +34,6 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* Consumer Policy Section */}
           <div className="col-md-3 mb-2">
             <h6 className="text-muted fw-bold">Consumer Policy</h6>
             <ul className="list-unstyled">
@@ -49,7 +45,6 @@ export const Footer = () => {
             </ul>
           </div>
 
-          {/* Developer Details Section */}
           <div className="col-md-3 mb-2">
             <h6 className="text-muted fw-bold">Developer Details</h6>
             <ul className="list-unstyled">

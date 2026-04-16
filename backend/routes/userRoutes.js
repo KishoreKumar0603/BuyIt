@@ -17,7 +17,6 @@ import passport from "../config/passport.js";
 
 const router = express.Router();
 
-// Rate limiters
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // Limit each IP to 5 requests per windowMs
@@ -30,13 +29,11 @@ const registerLimiter = rateLimit({
   message: "Too many registration attempts, please try again later.",
 });
 
-// Routes
 router.post("/login", authLimiter, loginUser);
 router.post("/register", registerLimiter, registerUser);
 router.post("/verify", verifyUser);
 router.post("/refresh", refreshToken);
 
-// Google OAuth Routes
 router.get(
   "/auth/google",
   passport.authenticate("google", { scope: ["profile", "email"] }),
@@ -48,7 +45,6 @@ router.get(
 );
 router.post("/complete-profile", isAuth, completeProfile);
 
-// Protected Routes
 router.get("/my-profile", isAuth, myProfile);
 router.delete("/delete", isAuth, deleteUser);
 router.patch("/update", isAuth, updateUser);

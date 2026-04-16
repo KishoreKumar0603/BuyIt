@@ -5,7 +5,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Only configure Google OAuth if credentials are provided
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   passport.use(
     new GoogleStrategy(
@@ -18,18 +17,15 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
       },
       async (accessToken, refreshToken, profile, done) => {
         try {
-          // Check if user already exists with this Google ID
           let user = await User.findOne({ googleId: profile.id });
 
           if (user) {
             return done(null, user);
           }
 
-          // Check if user exists with same email
           user = await User.findOne({ email: profile.emails[0].value });
 
           if (user) {
-            // If user exists but doesn't have googleId, link the accounts
             user.googleId = profile.id;
             user.authProvider = "google";
             user.isVerified = true;
@@ -37,7 +33,6 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
             return done(null, user);
           }
 
-          // Create new user with Google OAuth
           const newUser = new User({
             name: profile.displayName,
             email: profile.emails[0].value,

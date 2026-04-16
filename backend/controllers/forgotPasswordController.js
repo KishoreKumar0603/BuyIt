@@ -6,7 +6,6 @@ import jwt from "jsonwebtoken";
 
 dotenv.config();
 
-// 🔹 1️⃣ Request OTP for Password Reset
 export const requestOTP = async (req, res) => {
   const { email } = req.body;
 
@@ -18,10 +17,8 @@ export const requestOTP = async (req, res) => {
 
     const { name } = user;
 
-    // Generate a 6-digit OTP
     const otp = Math.floor(1000 + Math.random() * 9000);
 
-    // Generate a JWT token with OTP (valid for 5 minutes)
     const activationKey = jwt.sign(
       { email, otp },
       process.env.ACTIVATION_KEY,
@@ -44,7 +41,6 @@ export const requestOTP = async (req, res) => {
       </div>
     `;
 
-    // Send OTP via email
     await sendMail(email, "BuyIt Password Reset OTP", message);
 
     return res.status(200).json({
@@ -57,7 +53,6 @@ export const requestOTP = async (req, res) => {
   }
 };
 
-// 🔹 2️⃣ Verify OTP
 export const verifyOtp = async (req, res) => {
   try {
     const { otp, resetKey } = req.body; // Match with frontend
@@ -80,7 +75,6 @@ export const verifyOtp = async (req, res) => {
       return res.status(400).json({ message: "Incorrect OTP. Please try again." });
     }
 
-    // Generate resetToken for password reset
     const resetToken = jwt.sign(
       { email: decoded.email },
       process.env.RESET_KEY,
@@ -98,7 +92,6 @@ export const verifyOtp = async (req, res) => {
   }
 };
 
-// 🔹 3️⃣ Change Password
 export const changePassword = async (req, res) => {
   try {
     const {password, confirmPassword,  resetToken} = req.body;
@@ -124,7 +117,6 @@ export const changePassword = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    // Update the password in the database
     await User.updateOne({ email: decoded.email }, { $set: { password: hashedPassword } });
 
     return res.status(200).json({ message: "Password reset successful." });

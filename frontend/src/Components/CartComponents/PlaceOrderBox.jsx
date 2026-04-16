@@ -11,7 +11,6 @@ const PlaceOrderBox = ({ cartItems, setCartItems, setTotalPrice, setIsProductAva
 
   const handlePlaceOrder = async () => {
     if (!cartItems || cartItems.length === 0) {
-      // alert("Your cart is empty! Please add items before placing an order.");
       triggerAlert("Your cart is empty! Please add items before placing an order.")
       return;
     }
@@ -37,21 +36,16 @@ const PlaceOrderBox = ({ cartItems, setCartItems, setTotalPrice, setIsProductAva
       );
 
       if (response.status === 200 || response.status === 201) {
-        // Clear the cart and reset relevant states
         setCartItems([]);
         setTotalPrice(0);
         setIsProductAvail(false);
 
-        // alert(response.data.message || "Order placed successfully!");
         triggerAlert(response.data.message || "Order placed successfully!");
         navigate("/order-success");
       } else {
-        // alert(response.data.error || "Error placing order. Please try again.");
         triggerAlert(response.data.error || "Error placing order. Please try again.");
       }
     } catch (error) {
-      // alert((error.response && error.response.data && error.response.data.error) || error.message ||"An unexpected error occurred."
-      // );
       triggerAlert((error.response && error.response.data && error.response.data.error) || error.message ||"An unexpected error occurred."
       );
     } finally {

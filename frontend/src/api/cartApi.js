@@ -1,6 +1,5 @@
 import axiosInstance from "../context/axiosInstance";
 
-// Cart APIs
 export const getCart = async () => {
   const response = await axiosInstance.get("/api/cart");
   return response.data;

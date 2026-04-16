@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Button, Form } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { useOutletContext } from "react-router-dom";
 import axiosInstance from "../../context/axiosInstance";
@@ -25,7 +24,6 @@ export const Personal = () => {
   const [loading, setLoading] = useState(true);
   const { triggerAlert } = useAlert();
 
-  // Initialize userData when user data is available
   useEffect(() => {
     if (user) {
       setUserData({
@@ -51,7 +49,6 @@ export const Personal = () => {
     try {
       const token = localStorage.getItem("token");
 
-      // Sending PATCH request with axios
       const response = await axiosInstance.patch(
         `/api/user/update`,
         { [field]: userData[field] },
@@ -72,7 +69,6 @@ export const Personal = () => {
       setIsEditing({ ...isEditing, [field]: false });
     } catch (err) {
       console.error(err);
-      // alert("Something went wrong. Try again.");
       triggerAlert("Something went wrong. Try again.");
     }
   };
@@ -109,12 +105,12 @@ export const Personal = () => {
               disabled={!isEditing.name}
             />
             {isEditing.name && (
-              <Button
+              <button
                 onClick={() => handleSave("name")}
-                className="btn-save mt-3"
+                className="btn btn-dark mt-3"
               >
                 Save
-              </Button>
+              </button>
             )}
           </div>
 
@@ -131,35 +127,45 @@ export const Personal = () => {
                 ✎ edit
               </span>
             </label>
-            <div>
-              <Form.Check
-                inline
-                label="Male"
-                type="radio"
-                name="gender"
-                value="male"
-                checked={userData.gender === "male"}
-                onChange={handleChange}
-                disabled={!isEditing.gender}
-              />
-              <Form.Check
-                inline
-                label="Female"
-                type="radio"
-                name="gender"
-                value="female"
-                checked={userData.gender === "female"}
-                onChange={handleChange}
-                disabled={!isEditing.gender}
-              />
+            <div className="d-flex flex-wrap gap-3">
+              <div className="form-check form-check-inline">
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  name="gender"
+                  value="male"
+                  checked={userData.gender === "male"}
+                  onChange={handleChange}
+                  disabled={!isEditing.gender}
+                  id="genderMale"
+                />
+                <label className="form-check-label" htmlFor="genderMale">
+                  Male
+                </label>
+              </div>
+              <div className="form-check form-check-inline">
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  name="gender"
+                  value="female"
+                  checked={userData.gender === "female"}
+                  onChange={handleChange}
+                  disabled={!isEditing.gender}
+                  id="genderFemale"
+                />
+                <label className="form-check-label" htmlFor="genderFemale">
+                  Female
+                </label>
+              </div>
             </div>
             {isEditing.gender && (
-              <Button
+              <button
                 onClick={() => handleSave("gender")}
-                className="btn-save mt-3"
+                className="btn btn-dark mt-3"
               >
                 Save
-              </Button>
+              </button>
             )}
           </div>
 
@@ -185,12 +191,12 @@ export const Personal = () => {
               disabled={!isEditing.username}
             />
             {isEditing.username && (
-              <Button
+              <button
                 onClick={() => handleSave("username")}
-                className="btn-save mt-3"
+                className="btn btn-dark mt-3"
               >
                 Save
-              </Button>
+              </button>
             )}
           </div>
 
@@ -216,12 +222,12 @@ export const Personal = () => {
               disabled={!isEditing.email}
             />
             {isEditing.email && (
-              <Button
+              <button
                 onClick={() => handleSave("email")}
-                className="btn-save mt-3"
+                className="btn btn-dark mt-3"
               >
                 Save
-              </Button>
+              </button>
             )}
           </div>
 
@@ -247,12 +253,12 @@ export const Personal = () => {
               disabled={!isEditing.mobile}
             />
             {isEditing.mobile && (
-              <Button
+              <button
                 onClick={() => handleSave("mobile")}
-                className="btn-save mt-3"
+                className="btn btn-dark mt-3"
               >
                 Save
-              </Button>
+              </button>
             )}
           </div>
           {/* FAQs */}

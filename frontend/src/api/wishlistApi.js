@@ -1,6 +1,5 @@
 import axiosInstance from "../context/axiosInstance";
 
-// Wishlist APIs
 export const getWishlist = async () => {
   const response = await axiosInstance.get("/api/wishlist/my-wishlist");
   return response.data;

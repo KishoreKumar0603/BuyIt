@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import { getAllOrders, updateOrderStatus } from "../api/orderApi";
@@ -9,17 +9,42 @@ export const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState("all");
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalOrders: 0,
+    hasNextPage: false,
+    hasPrevPage: false,
+    limit: 20,
+  });
 
   useEffect(() => {
     if (user && user.role === "admin") {
-      fetchOrders();
+      fetchOrders(1, filterStatus);
     }
   }, [user]);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (page = 1, status = filterStatus) => {
     try {
-      const data = await getAllOrders();
-      setOrders(data);
+      const data = await getAllOrders({
+        page,
+        limit: pagination.limit,
+        status,
+      });
+      if (data.orders) {
+        setOrders(data.orders);
+        setPagination(data.pagination);
+      } else {
+        setOrders(data);
+        setPagination({
+          currentPage: 1,
+          totalPages: 1,
+          totalOrders: data.length,
+          hasNextPage: false,
+          hasPrevPage: false,
+          limit: pagination.limit,
+        });
+      }
     } catch (error) {
       console.error("Error fetching orders:", error);
       toast.error("Failed to fetch orders");
@@ -56,6 +81,12 @@ export const AdminOrders = () => {
     }
   };
 
+  const paginate = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= pagination.totalPages) {
+      fetchOrders(pageNumber, filterStatus);
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-IN", {
       year: "numeric",
@@ -69,7 +100,10 @@ export const AdminOrders = () => {
   const filteredOrders =
     filterStatus === "all"
       ? orders
-      : orders.filter((order) => order.status.toLowerCase() === filterStatus);
+      : orders.filter(
+          (order) =>
+            (order.orderStatus || order.status).toLowerCase() === filterStatus,
+        );
 
   if (!user || user.role !== "admin") {
     return (
@@ -102,7 +136,10 @@ export const AdminOrders = () => {
           <select
             className="form-select"
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
+            onChange={(e) => {
+              setFilterStatus(e.target.value);
+              fetchOrders(1, e.target.value);
+            }}
             style={{ width: "150px" }}
           >
             <option value="all">All Orders</option>
@@ -152,16 +189,20 @@ export const AdminOrders = () => {
                       </td>
                       <td>
                         <div>
-                          {order.items?.slice(0, 2).map((item, index) => (
-                            <div key={index}>
-                              <small>
-                                {item.product?.title} (x{item.quantity})
-                              </small>
-                            </div>
-                          ))}
-                          {order.items?.length > 2 && (
+                          {(order.items || order.products)
+                            ?.slice(0, 2)
+                            .map((item, index) => (
+                              <div key={index}>
+                                <small>
+                                  {item.product?.title || item.title} (x
+                                  {item.quantity})
+                                </small>
+                              </div>
+                            ))}
+                          {(order.items || order.products)?.length > 2 && (
                             <small className="text-muted">
-                              +{order.items.length - 2} more items
+                              +{(order.items || order.products).length - 2} more
+                              items
                             </small>
                           )}
                         </div>
@@ -169,9 +210,9 @@ export const AdminOrders = () => {
                       <td>₹{order.totalAmount}</td>
                       <td>
                         <span
-                          className={`badge bg-${getStatusColor(order.status)}`}
+                          className={`badge bg-${getStatusColor(order.orderStatus || order.status)}`}
                         >
-                          {order.status}
+                          {order.orderStatus || order.status}
                         </span>
                       </td>
                       <td>
@@ -180,7 +221,7 @@ export const AdminOrders = () => {
                       <td>
                         <select
                           className="form-select form-select-sm"
-                          value={order.status}
+                          value={order.orderStatus || order.status}
                           onChange={(e) =>
                             handleStatusUpdate(order._id, e.target.value)
                           }
@@ -197,6 +238,55 @@ export const AdminOrders = () => {
                   ))}
                 </tbody>
               </table>
+
+              {pagination.totalPages > 1 && (
+                <div className="d-flex justify-content-center mt-4">
+                  <nav>
+                    <ul className="pagination">
+                      <li
+                        className={`page-item ${!pagination.hasPrevPage ? "disabled" : ""}`}
+                      >
+                        <button
+                          className="page-link text-dark"
+                          onClick={() => paginate(pagination.currentPage - 1)}
+                          disabled={!pagination.hasPrevPage}
+                        >
+                          Previous
+                        </button>
+                      </li>
+
+                      {Array.from(
+                        { length: pagination.totalPages },
+                        (_, i) => i + 1,
+                      ).map((page) => (
+                        <li
+                          key={page}
+                          className={`page-item ${pagination.currentPage === page ? "active" : ""}`}
+                        >
+                          <button
+                            className="page-link text-dark"
+                            onClick={() => paginate(page)}
+                          >
+                            {page}
+                          </button>
+                        </li>
+                      ))}
+
+                      <li
+                        className={`page-item ${!pagination.hasNextPage ? "disabled" : ""}`}
+                      >
+                        <button
+                          className="page-link text-dark"
+                          onClick={() => paginate(pagination.currentPage + 1)}
+                          disabled={!pagination.hasNextPage}
+                        >
+                          Next
+                        </button>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              )}
             </div>
           )}
         </div>

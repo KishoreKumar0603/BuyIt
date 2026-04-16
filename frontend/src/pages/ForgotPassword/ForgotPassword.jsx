@@ -25,12 +25,10 @@ const ForgotPassword = () => {
         localStorage.setItem("activationKey", activationKey);  // Store resetKey in localStorage
         navigate("/otp-verify", { state: { email: username } });
       } else {
-        // alert(response.data.message || "User not found!");
         triggerAlert(response.data.message || "User not found!");
       }
     } catch (error) {
       console.error("Error requesting OTP:", error);
-      // alert("Something went wrong. Please try again.");
       triggerAlert("Something went wrong. Please try again.");
     }
   };

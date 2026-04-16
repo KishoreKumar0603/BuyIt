@@ -26,7 +26,6 @@
   padding: 8px 0;
   font-size: 1.2rem;
   color: black;
-  /* transition: background-color 0.3s, color 0.3s; */
   transition: all 0 3s !important;
 }
 
@@ -102,7 +101,6 @@ label {
   -ms-overflow-style: none;
 }
 
-/* Optional: Hide scroll bar for cleaner look (WebKit browsers) */
 .wishlist-scroll-container::-webkit-scrollbar {
   width: 6px;
 }

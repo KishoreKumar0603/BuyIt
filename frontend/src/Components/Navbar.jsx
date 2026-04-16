@@ -52,7 +52,6 @@ export const Navbar = () => {
     return () => clearInterval(interval);
   }, [navigate, setUser]);
 
-  // Close dropdown on click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!event.target.closest(".nav-item.dropdown")) {

@@ -1,6 +1,5 @@
 import axiosInstance from "../context/axiosInstance";
 
-// User Authentication APIs
 export const loginUser = async (email, password) => {
   const response = await axiosInstance.post("/api/user/login", {
     email,
@@ -57,7 +56,6 @@ export const deleteUser = async () => {
   return response.data;
 };
 
-// Forgot Password APIs
 export const forgotPassword = async (email) => {
   const response = await axiosInstance.post(
     "/api/user/forgot/forgot-password",
@@ -83,7 +81,6 @@ export const resetPassword = async (email, otp, newPassword) => {
   return response.data;
 };
 
-// Google OAuth APIs
 export const completeProfile = async (profileData) => {
   const response = await axiosInstance.post(
     "/api/user/complete-profile",

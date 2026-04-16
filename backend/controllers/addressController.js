@@ -1,7 +1,5 @@
-// controllers/address.controller.js
 import Address from "../models/address.js";
 
-// Get all addresses for logged-in user
 export const getAddressesByUser = async (req, res) => {
   try {
     const addresses = await Address.find({ userId: req.user._id });
@@ -11,7 +9,6 @@ export const getAddressesByUser = async (req, res) => {
   }
 };
 
-// Add new address
 export const addAddress = async (req, res) => {
   try {
     const { name, phone, address } = req.body;
@@ -30,7 +27,6 @@ export const addAddress = async (req, res) => {
   }
 };
 
-// Update existing address
 export const updateAddress = async (req, res) => {
   try {
     const { id } = req.params;
@@ -49,7 +45,6 @@ export const updateAddress = async (req, res) => {
   }
 };
 
-// Delete address
 export const deleteAddress = async (req, res) => {
   try {
     const { id } = req.params;

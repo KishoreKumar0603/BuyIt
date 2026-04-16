@@ -31,6 +31,9 @@ import { RootWishlist } from "./Components/Wishlist/RootWishlist.jsx";
 import HomeRootLayout from "./layout/HomeRootLayout.jsx";
 import { ProductListing } from "./Components/ProductComponents/ProductListing.jsx";
 import { ProductDetails } from "./Components/ProductComponents/ProductDetails.jsx";
+import { OrderSuccess } from "./Components/CartComponents/OrderSuccess.jsx";
+import PrivateRoute from "./PrivateRoute.jsx";
+import CustomAlertWrapper from "./context/CustomAlertWrapper.jsx";
 import { Admin } from "./pages/Admin.jsx";
 import { AdminOrders } from "./pages/AdminOrders.jsx";
 
@@ -42,6 +45,8 @@ function App() {
           <Route index element={<HomeRootLayout />} />
 
           <Route element={<PrivateRoute />}>
+            <Route path="products" element={<ProductListing />} />
+            <Route path="products" element={<ProductListing />} />
             <Route path="products/:category" element={<ProductListing />} />
             <Route path="products/:category/:id" element={<ProductDetails />} />
             <Route path="cart" element={<RootCart />} />

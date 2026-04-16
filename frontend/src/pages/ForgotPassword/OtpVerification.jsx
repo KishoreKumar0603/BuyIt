@@ -40,7 +40,6 @@ const OtpVerification = () => {
 
   const handleVerifyOtp = async () => {
     if (!activationKey) {
-      // alert("Activation key missing. Please register again.");
       triggerAlert("Activation key missing. Please register again.");
       return;
     }
@@ -48,7 +47,6 @@ const OtpVerification = () => {
     const otpValue = otp.join("").trim();
     if (otpValue.length !== 4) {
       triggerAlert("Please enter a 4-digit OTP.");
-      // alert("Please enter a 4-digit OTP.");
       return;
     }
 
@@ -61,17 +59,14 @@ const OtpVerification = () => {
 
       if (response.status === 200) {
         triggerAlert("Account Created Successfully");
-        // alert("Account Created Successfully");
         localStorage.removeItem("activationKey");
         navigate("/login");
       } else {
         triggerAlert(response.data.message);
-        // alert(response.data.message);
       }
     } catch (error) {
       console.error("Error verifying OTP:", error);
       triggerAlert("Something went wrong. Please try again.");
-      // alert("Something went wrong. Please try again.");
     }
   };
 

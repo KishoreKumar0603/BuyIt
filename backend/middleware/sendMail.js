@@ -4,7 +4,6 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const sendMail = async (email, subject, htmlContent) => {
-  // Configure SMTP transport
   const transport = createTransport({
     host: "smtp.gmail.com",
     port: 465,

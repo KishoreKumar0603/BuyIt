@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+
 const orderSchema = new mongoose.Schema(
   {
     userId: {
@@ -10,15 +11,15 @@ const orderSchema = new mongoose.Schema(
     products: [
       {
         productId: { type: mongoose.Schema.Types.ObjectId, required: true },
-        image_url: {type: String, required:true},
-        title :{type: String, required:true},
+        image_url: { type: String, required: true },
+        title: { type: String, required: true },
         category: { type: String, required: true }, // Collection name
         quantity: { type: Number, required: true, default: 1 },
         price: { type: Number, required: true },
       },
     ],
 
-    shippingAddress: { type: String},
+    shippingAddress: { type: String },
     totalAmount: { type: Number, required: true },
     paymentStatus: {
       type: String,
@@ -27,11 +28,11 @@ const orderSchema = new mongoose.Schema(
     },
     orderStatus: {
       type: String,
-      enum: ["Processing", "Delivered", "Cancelled"],
-      default: "Processing",
+      enum: ["pending", "paid", "shipped", "delivered", "cancelled"],
+      default: "pending",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Order = mongoose.model("Order", orderSchema);

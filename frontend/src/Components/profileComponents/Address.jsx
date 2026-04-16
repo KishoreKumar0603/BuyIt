@@ -41,13 +41,11 @@ export const Address = () => {
   };
 
   const handleSave = async () => {
-    // ✅ Validation
     if (
       !editedAddress.name.trim() ||
       !editedAddress.phone.trim() ||
       !editedAddress.address.trim()
     ) {
-      // alert("Please fill in all fields before saving.");
       triggerAlert("Please fill in all fields before saving.");
       return;
     }

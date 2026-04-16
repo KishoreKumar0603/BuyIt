@@ -9,6 +9,7 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import Signup from "./pages/Signup.jsx";
+import CompleteProfile from "./pages/CompleteProfile.jsx";
 import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import OtpVerification from "./pages/ForgotPassword/OtpVerification";
 import ResetPassword from "./pages/ForgotPassword/ResetPassword";
@@ -33,6 +34,8 @@ import { ProductDetails } from "./Components/ProductComponents/ProductDetails.js
 import { OrderSuccess } from "./Components/CartComponents/OrderSuccess.jsx";
 import PrivateRoute from "./PrivateRoute.jsx";
 import CustomAlertWrapper from "./context/CustomAlertWrapper.jsx";
+import { Admin } from "./pages/Admin.jsx";
+import { AdminOrders } from "./pages/AdminOrders.jsx";
 
 function App() {
   const router = createBrowserRouter(
@@ -42,11 +45,15 @@ function App() {
           <Route index element={<HomeRootLayout />} />
 
           <Route element={<PrivateRoute />}>
+            <Route path="products" element={<ProductListing />} />
+            <Route path="products" element={<ProductListing />} />
             <Route path="products/:category" element={<ProductListing />} />
             <Route path="products/:category/:id" element={<ProductDetails />} />
             <Route path="cart" element={<RootCart />} />
             <Route path="order-success" element={<OrderSuccess />} />
             <Route path="orders" element={<Order />} />
+            <Route path="admin" element={<Admin />} />
+            <Route path="admin/orders" element={<AdminOrders />} />
             <Route path="wishlist" element={<RootWishlist />} />
             <Route path="profile" element={<ProfileLayout />}>
               <Route index element={<Navigate to="personal" replace />} />
@@ -63,13 +70,14 @@ function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/complete-profile" element={<CompleteProfile />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/otp-verification" element={<OtpVerification />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/otp-verify" element={<Otp />} />
         <Route path="*" element={<NotFound />} />
-      </>
-    )
+      </>,
+    ),
   );
 
   return (

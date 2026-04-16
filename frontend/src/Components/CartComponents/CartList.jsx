@@ -1,12 +1,12 @@
-import React from "react";
-import { Button } from "react-bootstrap";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
-import axiosInstance from "../../context/axiosInstance";
+import { updateCartItem, removeFromCart } from "../../api/cartApi";
 
 export const CartList = () => {
   const { cartItems, setCartItems, setTotalPrice, setIsProductAvail } =
     useCart();
+  const [loadingItems, setLoadingItems] = useState(new Set());
 
   const token = localStorage.getItem("token");
 
@@ -20,43 +20,36 @@ export const CartList = () => {
     });
 
     setCartItems(updatedItems);
+    setLoadingItems((prev) => new Set(prev).add(itemId));
 
     const changedItem = updatedItems.find((item) => item._id === itemId);
 
     try {
-      await axiosInstance.put(
-        `/api/cart/update`,
-        {
-          productId: changedItem.product._id,
-          quantity: changedItem.quantity,
-          price: changedItem.product.price,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      await updateCartItem(changedItem.product._id, changedItem.quantity);
 
       const newTotal = updatedItems.reduce(
         (sum, item) => sum + item.product.price * item.quantity,
-        0
+        0,
       );
       setTotalPrice(newTotal);
     } catch (error) {
       console.error("❌ Error updating quantity:", error.message);
+      setCartItems(cartItems);
+    } finally {
+      setLoadingItems((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(itemId);
+        return newSet;
+      });
     }
   };
 
   const handleRemove = async (itemId) => {
     const removedItem = cartItems.find((item) => item._id === itemId);
+    setLoadingItems((prev) => new Set(prev).add(itemId));
+
     try {
-      await axiosInstance.delete(`/api/cart/remove/${removedItem.product._id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await removeFromCart(removedItem.product._id);
 
       const newItems = cartItems.filter((item) => item._id !== itemId);
       setCartItems(newItems);
@@ -64,11 +57,17 @@ export const CartList = () => {
 
       const newTotal = newItems.reduce(
         (sum, item) => sum + item.product.price * item.quantity,
-        0
+        0,
       );
       setTotalPrice(newTotal);
     } catch (error) {
       console.error("❌ Error removing item:", error.message);
+    } finally {
+      setLoadingItems((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(itemId);
+        return newSet;
+      });
     }
   };
 
@@ -115,35 +114,69 @@ export const CartList = () => {
                     <button
                       className="btn btn-light border me-2"
                       onClick={() => handleQuantityChange(item._id, -1)}
-                      disabled={item.quantity <= 1}
+                      disabled={
+                        item.quantity <= 1 || loadingItems.has(item._id)
+                      }
                     >
-                      -
+                      {loadingItems.has(item._id) ? (
+                        <span
+                          className="spinner-border spinner-border-sm"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                      ) : (
+                        "-"
+                      )}
                     </button>
                     <span>{item.quantity}</span>
                     <button
                       className="btn btn-light border ms-2"
                       onClick={() => handleQuantityChange(item._id, 1)}
-                      disabled={item.quantity >= item.product?.stock}
+                      disabled={
+                        item.quantity >= item.product?.stock ||
+                        loadingItems.has(item._id)
+                      }
                       title={
                         item.quantity >= item.product?.stock
                           ? `Only ${item.product?.stock} left in stock`
                           : ""
                       }
                     >
-                      +
+                      {loadingItems.has(item._id) ? (
+                        <span
+                          className="spinner-border spinner-border-sm"
+                          role="status"
+                          aria-hidden="true"
+                        ></span>
+                      ) : (
+                        "+"
+                      )}
                     </button>
                   </div>
                   <div className="col-8">
-                    <Link to={`/products/${item.category}/${item.product?._id}`}>
-                      <Button variant="dark">View</Button>
-                    </Link>
-                    <Button
-                      variant="dark"
-                      className="ms-3"
-                      onClick={() => handleRemove(item._id)}
+                    <Link
+                      to={`/products/${item.category}/${item.product?._id}`}
                     >
-                      Remove
-                    </Button>
+                      <button className="btn btn-dark">View</button>
+                    </Link>
+                    <button
+                      className="btn btn-dark ms-3"
+                      onClick={() => handleRemove(item._id)}
+                      disabled={loadingItems.has(item._id)}
+                    >
+                      {loadingItems.has(item._id) ? (
+                        <>
+                          <span
+                            className="spinner-border spinner-border-sm me-2"
+                            role="status"
+                            aria-hidden="true"
+                          ></span>
+                          Removing...
+                        </>
+                      ) : (
+                        "Remove"
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>

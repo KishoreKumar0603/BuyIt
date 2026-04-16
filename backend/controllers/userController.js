@@ -6,11 +6,9 @@ import sendMail from "../middleware/sendMail.js";
 
 dotenv.config();
 
-// Register User
 
 export const registerUser = async (req, res) => {
   try {
-    console.log("Received Registration Data:", req.body);
 
     const { name, email, phone, password } = req.body;
 
@@ -19,16 +17,15 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate OTP
     const otp = Math.floor(1000 + Math.random() * 9000);
     const activationKey = jwt.sign(
       { name, email, phone, hashedPassword, otp },
       process.env.ACTIVATION_KEY,
-      { expiresIn: "5m" }
+      { expiresIn: "5m" },
     );
+ 
     const message = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;">
       <h2 style="text-align: center; color:rgb(0, 0, 0);">BuyIt - OTP Verification</h2>
@@ -48,7 +45,6 @@ export const registerUser = async (req, res) => {
     </div>
   `;
 
-
     await sendMail(email, "BuyIt - Account Verification", message);
     return res.status(200).json({
       message: "OTP sent to your email. Please verify your account!",
@@ -60,7 +56,6 @@ export const registerUser = async (req, res) => {
   }
 };
 
-//verify otp
 export const verifyUser = async (req, res) => {
   try {
     const { otp, activationKey } = req.body;
@@ -89,7 +84,6 @@ export const verifyUser = async (req, res) => {
         .json({ message: "Incorrect OTP. Please try again." });
     }
 
-    // Check if the user already exists
     const existingUser = await User.findOne({ email: decoded.email });
     if (existingUser) {
       return res
@@ -97,7 +91,6 @@ export const verifyUser = async (req, res) => {
         .json({ message: "User already exists. Please log in." });
     }
 
-    // Create new user
     await User.create({
       name: decoded.name,
       email: decoded.email,
@@ -112,37 +105,44 @@ export const verifyUser = async (req, res) => {
   }
 };
 
-//Login User
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log("Login attempt with email:", email); // Debugging log 
-
-    // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
       console.log("User not found"); // Debugging log
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Compare passwords
     if (!(await user.matchPassword(password))) {
-      console.log("Password mismatch"); // Debugging log
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Generate JWT token
     const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "15d",
+      expiresIn: "15m",
     });
 
-    console.log("Login successful for:", user.email);
-    const { password: userPassword, ...userDetails } = user.toObject();
+    const refreshToken = jwt.sign(
+      { _id: user._id },
+      process.env.REFRESH_SECRET,
+      {
+        expiresIn: "7d",
+      },
+    );
+
+    user.refreshToken = refreshToken;
+    await user.save();
+    const {
+      password: userPassword,
+      refreshToken: _,
+      ...userDetails
+    } = user.toObject();
 
     res.status(200).json({
       message: "Welcome " + user.name,
       user: userDetails,
       token,
+      refreshToken,
     });
   } catch (error) {
     console.error("Error:", error.message);
@@ -150,8 +150,6 @@ export const loginUser = async (req, res) => {
   }
 };
 
-
-//Profile View
 export const myProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select("-password");
@@ -165,7 +163,6 @@ export const myProfile = async (req, res) => {
   }
 };
 
-// Delete Authenticated User
 export const deleteUser = async (req, res) => {
   try {
     const userId = req.user._id;
@@ -178,11 +175,12 @@ export const deleteUser = async (req, res) => {
     res.clearCookie("token"); // Optional: log out user after deletion
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error deleting user", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error deleting user", error: error.message });
   }
 };
 
-// Update Authenticated User
 export const updateUser = async (req, res) => {
   try {
     const updates = req.body;
@@ -193,26 +191,131 @@ export const updateUser = async (req, res) => {
       runValidators: true,
     }).select("-password");
 
-    if (!updatedUser) return res.status(404).json({ message: "User not found" });
+    if (!updatedUser)
+      return res.status(404).json({ message: "User not found" });
 
-    res.status(200).json({ message: "Profile updated successfully", user: updatedUser });
+    res
+      .status(200)
+      .json({ message: "Profile updated successfully", user: updatedUser });
   } catch (error) {
     console.error("Update Error:", error.message);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-//update password
-export const changePass = async(req, res) => {
+export const changePass = async (req, res) => {
   const { oldPassword, newPassword } = req.body;
   const user = await User.findById(req.user.id); // or req.user._id based on JWT
 
   const isMatch = await bcrypt.compare(oldPassword, user.password);
-  if (!isMatch) return res.status(400).json({ message: "Old password is incorrect" });
+  if (!isMatch)
+    return res.status(400).json({ message: "Old password is incorrect" });
 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   user.password = hashedPassword;
   await user.save();
 
   res.status(200).json({ message: "Password updated successfully" });
-} 
+};
+
+export const refreshToken = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(401).json({ message: "Refresh token required" });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, process.env.REFRESH_SECRET);
+    } catch (error) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+
+    const user = await User.findById(decoded._id);
+    if (!user || user.refreshToken !== refreshToken) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+
+    const newToken = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "15m",
+    });
+
+    res.status(200).json({
+      token: newToken,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const googleAuthCallback = async (req, res) => {
+  try {
+    const user = req.user;
+
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "15m",
+    });
+
+    const refreshToken = jwt.sign(
+      { _id: user._id },
+      process.env.REFRESH_SECRET || process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      },
+    );
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    if (user.needsAdditionalInfo) {
+      const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+      return res.redirect(
+        `${frontendUrl}/complete-profile?token=${token}&needsInfo=true`,
+      );
+    }
+
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+    res.redirect(`${frontendUrl}/?token=${token}&refreshToken=${refreshToken}`);
+  } catch (error) {
+    console.error("Google Auth Callback Error:", error);
+    res.redirect(
+      `${process.env.FRONTEND_URL || "http://localhost:5173"}/login?error=auth_failed`,
+    );
+  }
+};
+
+export const completeProfile = async (req, res) => {
+  try {
+    const { phone, gender, address } = req.body;
+    const userId = req.user._id;
+
+    const updateData = {
+      phone,
+      gender,
+      needsAdditionalInfo: false,
+    };
+
+    if (address) {
+      updateData.address = address;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
+      new: true,
+      runValidators: true,
+    }).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      message: "Profile completed successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Complete Profile Error:", error.message);
+    res.status(500).json({ message: "Server error" });
+  }
+};

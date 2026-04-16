@@ -38,7 +38,6 @@ const ProfileLayout = () => {
     }
   }, [userData]);
 
-  // Loading spinner UI
   if (loading) {
     return (
       <div className="d-flex justify-content-center min-vh-100">
@@ -57,7 +56,6 @@ const ProfileLayout = () => {
           <Sidebar />
         </div>
 
-        {/* Content Area */}
         <div className="col-md-9">
           <Outlet context={{ user: userData, token }} />
         </div>

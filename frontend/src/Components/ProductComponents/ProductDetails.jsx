@@ -1,18 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
-import axiosInstance from '../../context/axiosInstance';
+import React, { useEffect, useState } from "react";
+import { useParams, Navigate, useNavigate } from "react-router-dom";
+import axiosInstance from "../../context/axiosInstance";
 import { useAlert } from "../../context/AlertContext";
+import { useAuth } from "../../context/AuthContext";
 
 export const ProductDetails = () => {
   const { category, id } = useParams();
   const [product, setProduct] = useState(null);
-  const [redirectToOrderConfirmation, setRedirectToOrderConfirmation] = useState(false);
-  const {triggerAlert} = useAlert();
+  const [redirectToOrderConfirmation, setRedirectToOrderConfirmation] =
+    useState(false);
+  const { triggerAlert } = useAlert();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await axiosInstance.get(`/api/products/${category}/${id}`);
+        const response = await axiosInstance.get(
+          `/api/products/${category}/${id}`,
+        );
         setProduct(response.data);
         console.log(response.data);
       } catch (error) {
@@ -31,10 +37,21 @@ export const ProductDetails = () => {
     }
   }, [product]);
 
+  const ensureAuth = () => {
+    const token = user?.token || localStorage.getItem("token");
+    if (!token) {
+      triggerAlert("Please login to continue.");
+      navigate("/login");
+      return null;
+    }
+    return token;
+  };
+
   const addToCart = async () => {
+    const token = ensureAuth();
+    if (!token) return;
+
     try {
-      const token = localStorage.getItem("token");
-  
       await axiosInstance.post(
         "/api/cart/add",
         {
@@ -46,51 +63,67 @@ export const ProductDetails = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
-  
+
       const currentCart = JSON.parse(localStorage.getItem("cart")) || [];
-      currentCart.push({ ...product, quantity: 1 });
+      const existingItem = currentCart.find((item) => item._id === product._id);
+      if (existingItem) {
+        existingItem.quantity = (existingItem.quantity || 0) + 1;
+      } else {
+        currentCart.push({ ...product, quantity: 1 });
+      }
       localStorage.setItem("cart", JSON.stringify(currentCart));
-  
+
       triggerAlert("Product added to cart!");
     } catch (error) {
-      console.error("Error adding to cart:", error.response?.data || error.message);
+      console.error(
+        "Error adding to cart:",
+        error.response?.data || error.message,
+      );
       triggerAlert(error.response?.data?.error || "Failed to add to cart.");
     }
   };
-  
+
   const buyNow = async () => {
+    const token = ensureAuth();
+    if (!token) return;
+
     try {
-      const token = localStorage.getItem("token");
-  
       await axiosInstance.post(
-        '/api/orders/place',
+        "/api/orders/place",
         {
           products: [
             {
               productId: product._id,
-              category: category,
+              category,
               quantity: 1,
-            }
-          ]
+            },
+          ],
         },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
-      localStorage.removeItem('cart');
+
+      localStorage.removeItem("cart");
       setRedirectToOrderConfirmation(true);
     } catch (error) {
-      console.error('Error placing order:', error.response?.data || error.message);
+      console.error(
+        "Error placing order:",
+        error.response?.data || error.message,
+      );
       triggerAlert(error.response?.data?.error || "Failed to place order.");
     }
   };
   if (!product) {
     return (
-      <div className="container py-5 d-flex justify-content-center" style={{ height: '300px' }}>
+      <div
+        className="container py-5 d-flex justify-content-center"
+        style={{ height: "300px" }}
+      >
         <div className="spinner-border text-dark" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
@@ -106,42 +139,58 @@ export const ProductDetails = () => {
     <div className="container py-5 box">
       <div className="row p-3">
         <div className="col-md-6 mb-4">
-          <div className="d-flex justify-content-center align-items-center" style={{ height: '400px' }}>
+          <div
+            className="d-flex justify-content-center align-items-center"
+            style={{ height: "400px" }}
+          >
             <img
               src={product.image_url}
               alt={product.name}
               className="img-fluid object-fit-contain"
-              style={{ height: '100%', width: '100%' }}
+              style={{ height: "100%", width: "100%" }}
             />
           </div>
           <div className="d-flex justify-content-center mt-4 gap-3">
-            <button className="btn btn-dark px-4 py-2" onClick={addToCart}>Add to Cart</button>
-            <button className="btn btn-dark px-4 py-2" onClick={buyNow}>Buy Now</button>
+            <button className="btn btn-dark px-4 py-2" onClick={addToCart}>
+              Add to Cart
+            </button>
+            <button className="btn btn-dark px-4 py-2" onClick={buyNow}>
+              Buy Now
+            </button>
           </div>
         </div>
 
         <div className="col-md-6">
           <h4>{product.title || "Product Name"}</h4>
-          <p className="mt-3 secondary"><strong>Brand :</strong> {product.brand}</p>
+          <p className="mt-3 secondary">
+            <strong>Brand :</strong> {product.brand}
+          </p>
           <p className="text-success">Special Offer</p>
           <h3 className="text-dark">₹{product.price}</h3>
           <p className="badge bg-success">{product.rating} / 5 </p>
-          <p className='secondary'><strong>Available Qty :</strong> {product.stock}</p>
+          <p className="secondary">
+            <strong>Available Qty :</strong> {product.stock}
+          </p>
 
           <hr className="my-4" />
-          
+
           <h5>Product Details</h5>
           <p className="secondary">{product.description || product.title}</p>
 
           <h5 className="mt-4">Key Features</h5>
           <ul className="list-unstyled">
-            {
-              product.features ? product.features.map((feature, index) => (
-                <li key={index} className="mb-2 d-flex align-items-start secondary">
+            {product.features ? (
+              product.features.map((feature, index) => (
+                <li
+                  key={index}
+                  className="mb-2 d-flex align-items-start secondary"
+                >
                   <span className="me-2">📌</span> <span>{feature}</span>
                 </li>
-              )) : <p className='secondary'>{category}</p>
-            }
+              ))
+            ) : (
+              <p className="secondary">{category}</p>
+            )}
           </ul>
         </div>
       </div>

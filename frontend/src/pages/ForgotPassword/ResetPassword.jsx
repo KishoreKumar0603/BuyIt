@@ -20,19 +20,16 @@ const ResetPassword = () => {
   const handleResetPassword = async () => {
     if (!resetToken) {
       triggerAlert("Reset token is missing. Please try again.");
-      // alert("Reset token is missing. Please try again.");
       return;
     }
 
     if (password.length < 6) {
       triggerAlert("Password must be at least 6 characters long.");
-      // alert("Password must be at least 6 characters long.");
       return;
     }
 
     if (password !== confirmPassword) {
       triggerAlert("Passwords do not match!");
-      // alert("Passwords do not match!");
       return;
     }
 
@@ -45,17 +42,14 @@ const ResetPassword = () => {
 
       if (response.status === 200) {
         triggerAlert("Password reset successfully!");
-        // alert("Password reset successfully!");
         localStorage.removeItem("resetToken"); // Clear reset token
         navigate("/login");
       } else {
         triggerAlert(response.data.message);
-        // alert(response.data.message);
       }
     } catch (error) {
       console.error("Error resetting password:", error);
       triggerAlert("Something went wrong. Please try again.");
-      // alert("Something went wrong. Please try again.");
     }
   };
 

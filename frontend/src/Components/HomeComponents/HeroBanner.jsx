@@ -3,7 +3,6 @@ import React from 'react';
 const banners = [
   { img: 'https://res.cloudinary.com/dljbnzwmr/image/upload/v1745817596/Banner_2_cvjgqk.jpg', alt: 'Flash Sale Banner 2' },
   { img: 'https://res.cloudinary.com/dljbnzwmr/image/upload/v1745817597/Banner_1_mrj9hy.jpg', alt: 'Flash Sale Banner 1' },
-  // { img: '/images/Banner/Banner_3.png', alt: 'Flash Sale Banner 3' }
 ];
 
 const HeroBanner = () => {

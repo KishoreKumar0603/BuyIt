@@ -1,6 +1,11 @@
-// src/context/CartContext.js
 import React, { createContext, useContext, useState, useEffect } from "react";
-import axiosInstance from "./axiosInstance";
+import {
+  getCart,
+  addToCart as apiAddToCart,
+  updateCartItem,
+  removeFromCart,
+  clearCart,
+} from "../api/cartApi";
 
 const CartContext = createContext();
 
@@ -14,20 +19,14 @@ export const CartProvider = ({ children }) => {
 
   const fetchCart = async () => {
     try {
-      const res = await axiosInstance.get("/api/cart", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = res.data;
+      const data = await getCart();
       const items = data.items || [];
       setCartItems(items);
       setIsProductAvail(items.length > 0);
 
       const total = items.reduce(
         (sum, item) => sum + item.product.price * item.quantity,
-        0
+        0,
       );
       setTotalPrice(total);
     } catch (err) {

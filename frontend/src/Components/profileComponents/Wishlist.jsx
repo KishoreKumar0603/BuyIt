@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Button, Spinner } from "react-bootstrap";
 import axiosInstance from "../../context/axiosInstance";
 
 export const Wishlist = () => {
@@ -44,7 +43,7 @@ export const Wishlist = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        }
+        },
       );
 
       if (res.status === 200) {
@@ -72,7 +71,7 @@ export const Wishlist = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (resAddToCart.status === 200) {
@@ -85,13 +84,12 @@ export const Wishlist = () => {
     }
   };
 
-  // ✅ Conditional rendering based on loading
   if (loading) {
     return (
       <div className="d-flex justify-content-center vh-100">
-        <Spinner animation="border" role="status" variant="dark">
+        <div className="spinner-border text-dark" role="status">
           <span className="visually-hidden">Loading...</span>
-        </Spinner>
+        </div>
       </div>
     );
   }
@@ -120,7 +118,9 @@ export const Wishlist = () => {
 
                 <div className="card-body text-center">
                   <h6 className="card-title mb-1">
-                    {item.title?.length > 25 ? item.title.slice(0, 25) + "..." : item.title}
+                    {item.title?.length > 25
+                      ? item.title.slice(0, 25) + "..."
+                      : item.title}
                   </h6>
                   <p className="text-muted small">Specs</p>
                   <p className="mb-1">
@@ -132,9 +132,12 @@ export const Wishlist = () => {
                   <p className="text-success fw-bold">
                     {item.discount || "10% OFF"}
                   </p>
-                  <Button variant="dark" onClick={() => moveToCart(item._id, item.category)}>
+                  <button
+                    className="btn btn-dark"
+                    onClick={() => moveToCart(item._id, item.category)}
+                  >
                     Move to Cart
-                  </Button>
+                  </button>
                 </div>
               </div>
             </div>

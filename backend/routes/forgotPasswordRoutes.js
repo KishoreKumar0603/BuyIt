@@ -7,10 +7,8 @@ import {
 
 const router = express.Router();
 
-// Route to request an OTP
 router.post("/request-otp", requestOTP);
 
-// Route to verify OTP and reset password
 router.post("/reset-password", verifyOtp);
 
 router.post("/change-password", changePassword);

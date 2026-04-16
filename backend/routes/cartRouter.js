@@ -6,7 +6,6 @@ import mongoose from "mongoose";
 
 const router = express.Router();
 
-// ✅ Add item to cart
 router.post("/add", isAuth, async (req, res) => {
   try {
     const userId = req.user._id; // from isAuth
@@ -49,7 +48,6 @@ router.post("/add", isAuth, async (req, res) => {
   }
 });
 
-// ✅ Get authenticated user's cart
 router.get("/", isAuth, async (req, res) => {
   try {
     const userId = req.user._id;
@@ -84,7 +82,6 @@ router.get("/", isAuth, async (req, res) => {
   }
 });
 
-// ✅ Update cart item quantity
 router.put("/update", isAuth, async (req, res) => {
   try {
     const userId = req.user._id;
@@ -109,7 +106,6 @@ router.put("/update", isAuth, async (req, res) => {
   }
 });
 
-// ✅ Patch update by itemId
 router.patch("/update/:itemId", isAuth, async (req, res) => {
   const userId = req.user._id;
   const { itemId } = req.params;
@@ -133,7 +129,6 @@ router.patch("/update/:itemId", isAuth, async (req, res) => {
   }
 });
 
-// ✅ Remove item from cart
 router.delete("/remove/:productId", isAuth, async (req, res) => {
   try {
     const userId = req.user._id;
@@ -150,7 +145,6 @@ router.delete("/remove/:productId", isAuth, async (req, res) => {
   }
 });
 
-// ✅ Clear cart
 router.delete("/clear", isAuth, async (req, res) => {
   try {
     const userId = req.user._id;

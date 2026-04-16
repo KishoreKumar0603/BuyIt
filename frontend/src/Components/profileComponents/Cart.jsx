@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { Button } from "react-bootstrap";
 import { useOutletContext } from "react-router-dom";
 import axiosInstance from "../../context/axiosInstance";
 
@@ -10,14 +9,11 @@ export const Cart = () => {
   useEffect(() => {
     const fetchCart = async () => {
       try {
-        const response = await axiosInstance.get(
-          `/api/cart`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await axiosInstance.get(`/api/cart`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         setCartItems(response.data.items || []);
         console.log(response.data.items);
       } catch (err) {
@@ -53,7 +49,7 @@ export const Cart = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.status !== 200) throw new Error("Quantity update failed");
@@ -71,13 +67,13 @@ export const Cart = () => {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
       if (response.status !== 200) throw new Error("Failed to delete item");
 
       setCartItems((prevItems) =>
-        prevItems.filter((item) => item._id !== itemId)
+        prevItems.filter((item) => item._id !== itemId),
       );
     } catch (error) {
       console.error("❌ Error removing item:", error.message);
@@ -150,14 +146,13 @@ export const Cart = () => {
                       </button>
                     </div>
                     <div className="col-8">
-                      <Button variant="dark">Order</Button>
-                      <Button
-                        variant="dark"
-                        className="ms-3"
+                      <button className="btn btn-dark">Order</button>
+                      <button
+                        className="btn btn-dark ms-3"
                         onClick={() => handleRemove(item._id)}
                       >
                         Remove
-                      </Button>
+                      </button>
                     </div>
                   </div>
                 </div>

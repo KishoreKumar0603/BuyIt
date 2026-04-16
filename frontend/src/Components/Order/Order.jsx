@@ -43,7 +43,6 @@ export const Order = () => {
     }
   };
 
-  // Show spinner while loading
   if (loading) {
     return (
       <div className="container mt-4 d-flex justify-content-center" style={{ height: "300px" }}>
@@ -54,7 +53,6 @@ export const Order = () => {
     );
   }
 
-  // Show message if no orders are found
   if (orders.length === 0) {
     return <div className="container mt-4">No orders found.</div>;
   }
